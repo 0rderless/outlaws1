@@ -49,7 +49,7 @@ zs1 = pchip([(0, .25), (.06, .22), (.94, .25), (1, .35)])
 zmid = pchip([(0, .35), (.1, .36), (.9, .40), (1, .45)])
 zbul = pchip([(0, .42), (.18, .50), (.5, .52), (.75, .58), (1, .60)])
 zsh = pchip([(0, .655), (.08, .73), (.20, .80), (.30, .77), (.38, .80), (.60, .86), (.72, .93), (.85, .935), (.95, .90), (1, .855)])
-hz = pchip([(0, .615), (.04, .625), (.12, .65), (.22, .67), (.32, .73), (.37, .79)])
+hz = pchip([(0, .615), (.04, .63), (.12, .67), (.22, .72), (.32, .79), (.37, .85)])
 zroof = pchip([(.34, .84), (.40, .95), (.46, 1.08), (.52, 1.18), (.57, 1.212), (.63, 1.20), (.70, 1.14), (.78, 1.04), (.86, .975)])
 wr = pchip([(.34, .88), (.42, .75), (.50, .645), (.60, .60), (.70, .58), (.80, .53), (.88, .50)])
 zc = pchip([(.78, 1.0), (.86, .975), (.94, .94), (1, .885)])
@@ -59,7 +59,7 @@ def ring(t):
     zu = zbul(t)
     low = [(0, zb(t)), (w * .80, zb(t)), (w * .93, zs0(t)), (w * .97, zs1(t)), (w * .995, zmid(t)), (w, zu), (w * .998, lerp(zu, s6, .4)), (w * .993, lerp(zu, s6, .75)), (w * .985, s6)]
     h = hz(t); fz = s6 + .03
-    A = [(w * .92, s6 + .03), (w * .80, fz + .02), (w * .66, fz + .002), (w * .48, h - .015), (w * .28, h - .005), (w * .09, h + .022), (0, h + .034)]
+    A = [(w * .92, s6 + .03), (w * .80, fz + .03), (w * .66, fz + .004), (w * .48, h - .03), (w * .28, h - .02), (w * .09, h + .03), (0, h + .05)]
     zr = zroof(t); r_ = W2 * wr(t); zbelt = s6 + .04
     B = [(w * .90, s6 + .02), (w * .86, zbelt), (lerp(w * .86, r_, .5) - .02, (zbelt + zr - .08) / 2 + .02), (r_, zr - .08), (r_ * .72, zr - .03), (r_ * .36, zr - .008), (0, zr)]
     c_ = zc(t)
@@ -81,7 +81,7 @@ def classify(t, s, z):
     if zn == 'A':
         return 'Paint'
     if zn == 'C': return 'Paint'
-    if t < .41: return 'Paint'                         # cowl: the windscreen starts where the surface turns up
+    if t < .385: return 'Paint'                         # cowl: the windscreen starts where the surface turns up
     # cabin
     if s in (3, 4, 5, 6, 7):
         if s == 7: return 'Black' if .40 < t < .60 else 'Paint'
@@ -138,7 +138,7 @@ for f, k, c in cap(rings[-1], False, ts[-1]): tags[f] = 'Carbon'
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
 cl = bm.edges.layers.float.get('crease_edge') or bm.edges.layers.float.new('crease_edge')
 for i in range(len(rings) - 1):
-    for k, cv in ((2, .4), (8, .35), (11, .75 if .38 < ts[i] < .84 else (.55 if ts[i] < .38 else .15)), (15, .7 if .38 < ts[i] < .84 else (.3 if ts[i] < .38 else 0)), (21, .35 if ts[i] < .38 else 0)):
+    for k, cv in ((2, .4), (8, .35), (11, .75 if .38 < ts[i] < .84 else (.55 if ts[i] < .38 else .15)), (15, .7 if .38 < ts[i] < .84 else (.3 if ts[i] < .38 else 0)), (21, .6 if ts[i] < .38 else 0)):
         for kk in (k, n - k):
             e = bm.edges.get((rings[i][kk], rings[i + 1][kk]))
             if e: e[cl] = cv
