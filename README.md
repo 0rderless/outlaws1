@@ -16,11 +16,12 @@ An open-world London game for the browser. It is built for an iPad (A16) with a 
 - **Vehicles (Blender):**
   - The cars have recessed tinted glass, door shut lines, projector lamps, interiors seen through the glass and ten-spoke alloys.
   - Models: saloon, hatchback, SUV, sports car, the London black cab, a Met police estate, and a classic Routemaster bus.
-  - A **Chiron-style hypercar** that does 170 mph.
+  - A **Chiron-style hypercar** that does 170 mph. It is built from scratch in `tools/blender/chiron.py`, with the horseshoe grille, quad-LED headlights and side C-line, and its own low-profile wheels.
   - A sport **motorbike** that leans into corners.
   - A flyable **helicopter**.
   - A **tank**: a machine gun on a left click, and a cannon whose shells blow up cars, buses and police helicopters on R or a right click.
   - Wheel positions are read straight from the Blender models, so every wheel sits in its arch.
+- **Police helicopter (4+ stars):** it only spots you with a clear line of sight from the air, so buildings and cover hide you. When it loses you it searches the area where it last saw you. Its gunner needs a steady lock and fires short, inaccurate bursts that miss more the faster you move. It leaves when it runs low on fuel or loses you for a while, and the next one takes a minute or more to arrive.
 - **Spawn anything:** press **V** (or tap the car button under the settings gear) to spawn any vehicle in front of you in any paint colour. Only you can spawn the tank.
 - **Explosions:** cars catch fire and blow up when shot enough or hit by a tank shell, and the blast damages everything around them.
 - **Car radio:** six built-in songs (Montagem Dominador, Montagem Fearless, Montagem Alquimia, Isolation, Montagem Ritmo Astral and Montagem Impacto) play as soon as you get in a vehicle.
@@ -69,7 +70,7 @@ An open-world London game for the browser. It is built for an iPad (A16) with a 
   1. `python3 tools/layout.py` lays out the roads, blocks, building lots, props and colliders, and writes `assets/city/layout.json`.
   2. `python3 tools/textures.py` paints the 26 surface textures into `assets/city/layers.jpg`.
   3. `python3 -I tools/blender/city.py` and `python3 -I tools/blender/props.py` build the city, landmarks and props in Blender (bpy). They export `city.glb`, `eye.glb` and `props.glb`.
-   - The vehicle scripts are separate: `python3 -I tools/blender/cars.py <type> assets/cars/<type>.glb` builds each car, and `bus.py`, `bike.py`, `tank.py`, `heli.py` and `wheel.py` build the Routemaster, the motorbike, the tank, the helicopter and the wheels. `cars.py` also writes `assets/cars/specs.json`, which holds each car's wheel positions.
+   - The vehicle scripts are separate: `python3 -I tools/blender/cars.py <type> assets/cars/<type>.glb` builds each car, and `bus.py`, `bike.py`, `tank.py`, `heli.py` and `wheel.py` build the Routemaster, the motorbike, the tank, the helicopter and the wheels. `cars.py` also writes `assets/cars/specs.json`, which holds each car's wheel positions. The hypercar has its own script: run `python3 -I tools/blender/chiron.py`, not `cars.py hyper`.
   4. Compress each with `gltf-transform quantize --quantize-color 8` followed by `gltf-transform meshopt`, which gives the `*.min.glb` files the game loads.
   5. `people.py`, `guns.py` and `anims.py` build the characters, guns and the animation file. The character scripts expect the MakeHuman base mesh and the MPFB2 Mixamo rig and weights from the makehumancommunity GitHub repos.
 

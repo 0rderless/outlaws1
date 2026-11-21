@@ -20,7 +20,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 for a in (('Paint', '#ffffff', .3, .2), ('Glass', '#0e1419', .05), ('Black', '#121314', .55), ('Under', '#0b0b0c', .9), ('Gap', '#050505', .9),
           ('Grille', '#0c0d0e', .6), ('Chrome', '#d9dde2', .12, 1.0), ('Interior', '#2a2b2e', .8), ('Seat', '#1d1e21', .85),
           ('PlateF', '#f4f4f0', .4), ('PlateR', '#f2c200', .4), ('Clear', '#c9ccd0', .1, .3), ('Livery', '#ffffff', .35, .1)): mat(*a)
-mat('Lens', '#4a5058', .06, .9); mat('LightF', '#f6f3ea', .05, 0, '#fff6e0', 1.5); mat('LightR', '#a50d12', .15, 0, '#ff1a1a', 1.2); mat('Amber', '#d27a0f', .2, 0, '#ff8a00', .6)
+mat('Lens', '#4a5058', .06, .9); mat('Carbon', '#0f1826', .3, .5); mat('LightF', '#f6f3ea', .05, 0, '#fff6e0', 1.5); mat('LightR', '#a50d12', .15, 0, '#ff1a1a', 1.2); mat('Amber', '#d27a0f', .2, 0, '#ff8a00', .6)
 mat('Taxi', '#ffcc22', .3, 0, '#ffcc22', 1.2); mat('BarBlue', '#16308a', .2, 0, '#3b6bff', 0.0); mat('BarRed', '#8a1616', .2, 0, '#ff3030', 0.0)
 # ------------------------------------------------------------------ helpers
 def pchip(keys):
@@ -61,12 +61,12 @@ S = {
    cowl=.36, wstop=.53, roofend=.70, deck=.86, side_end=.80, pillars=[('B', .655)], doors=[.33, .655],
    front=(.18, .27, .37, .46, .54), rear=(.24, .33, .46, .66, .80), wroof=[(.36, .86), (.53, .70), (.69, .70), (.86, .86)],
    plan=[(0, .70), (.012, .84), (.04, .93), (.12, .975), (.30, .95), (.45, .93), (.68, .995), (.82, 1), (.93, .975), (.98, .91), (.995, .82), (1, .72)], grille='intake', spoiler=True),
- 'hyper': dict(L=4.54, W=2.04, H=1.21, r=.365, FO=1.0, WB=2.71, rock=.19, mid=.44, drop=.08, beltF=.78, beltR=.90,
-   top=[(0, .56), (.03, .62), (.08, .69), (.20, .77), (.35, .83), (.37, .855), (.50, 1.17), (.58, 1.21), (.68, 1.17), (.84, .95), (.92, .93), (.98, .89), (1, .82)],
-   cowl=.35, wstop=.50, roofend=.69, deck=.86, side_end=.80, pillars=[], doors=[.335, .62],
-   front=(.17, .26, .36, .45, .53), rear=(.24, .34, .48, .70, .82), wroof=[(.35, .86), (.50, .66), (.69, .66), (.86, .84)],
-   plan=[(0, .72), (.012, .86), (.04, .94), (.12, .985), (.30, .955), (.45, .935), (.68, 1.0), (.85, 1.0), (.95, .97), (.99, .87), (1, .75)],
-   grille='horseshoe', spoiler=True, cline=True, lightbar=True),
+ 'hyper': dict(L=4.544, W=2.038, H=1.212, r=.365, FO=.98, WB=2.711, rock=.19, mid=.42, drop=.08, beltF=.80, beltR=.93,
+   top=[(0, .60), (.03, .655), (.10, .725), (.20, .785), (.33, .84), (.36, .875), (.50, 1.165), (.56, 1.212), (.66, 1.17), (.80, .995), (.88, .945), (.96, .905), (1, .845)],
+   cowl=.36, wstop=.50, roofend=.66, deck=.86, side_end=.60, pillars=[], doors=[.31, .555],
+   front=(.16, .25, .36, .455, .555), rear=(.25, .35, .50, .72, .845), wroof=[(.36, .86), (.50, .63), (.62, .60), (.78, .66), (.86, .80)],
+   plan=[(0, .60), (.012, .79), (.04, .90), (.10, .975), (.18, 1.0), (.25, 1.0), (.36, .94), (.50, .925), (.62, .965), (.72, 1.0), (.86, 1.0), (.94, .975), (.985, .89), (1, .77)],
+   grille='horseshoe', cline=True, lightbar=True, twotone=True),
  'police': dict(L=4.71, W=1.83, H=1.48, r=.335, FO=.84, WB=2.85, rock=.27, mid=.60, drop=.10, beltF=.90, beltR=.98,
    top=[(0, .745), (.02, .775), (.07, .81), (.16, .85), (.30, .92), (.315, .945), (.44, 1.40), (.5, 1.46), (.88, 1.44), (.93, 1.30), (.975, 1.03), (.99, .99), (1, .94)],
    cowl=.30, wstop=.44, roofend=.885, deck=.975, side_end=.905, pillars=[('B', .535), ('C', .715)], doors=[.285, .535, .715],
@@ -112,6 +112,15 @@ for d in p['doors']: feat += [d - G, d + G]
 for kind, tp in p['pillars']: feat += [tp - .014, tp + .014]
 ts = sorted(set(round(x, 4) for x in base + feat if 0 <= x <= 1))
 ts = [t for i, t in enumerate(ts) if i == 0 or t - ts[i - 1] > .0015]
+C_T0, C_A, C_Z0, C_B = .50, .19, .74, .46
+def c_rear(z): return C_T0 + C_A * math.sqrt(max(0.0, 1 - ((z - C_Z0) / C_B) ** 2)) if abs(z - C_Z0) < C_B else C_T0
+def two_tone(t, s, z, base):
+    if base not in ('Paint', 'Gap'): return base
+    if s >= 8 and t > p['cowl'] + .01: return 'Carbon'                 # roof, engine cover
+    if s <= 2: return 'Carbon' if t > .30 else base                    # dark sills
+    if t > c_rear(z) or z > C_Z0 + C_B: return 'Carbon'                # rear haunches behind the C
+    if t > .57 and .42 < z < 1.0: return 'Grille'                      # side air intake inside the C
+    return base
 def classify(t, s, side_glass_range):
     """material of the cage face in segment s (0..9) whose mid-section is t"""
     cw, ws, re, dk, se = p['cowl'], p['wstop'], p['roofend'], p['deck'], p['side_end']
@@ -156,6 +165,8 @@ for i in range(len(ts) - 1):
         f = bm.faces.new((rings[i][k], rings[i][(k + 1) % n], rings[i + 1][(k + 1) % n], rings[i + 1][k]))
         s = k if k < NH else (n - 1 - k)
         tags[f] = classify(tm, s, None)
+        if p.get('twotone'):
+            hr = ring(tm); tags[f] = two_tone(tm, s, (hr[s][1] + hr[s + 1][1]) / 2, tags[f])
 COLS = [0, .2, .36, .47, .6, .8, 1.0]
 def cap(rg, front):
     """grid-fill the end ring: rows = ring segments, columns at fixed width fractions; returns faces with (row, colfrac)"""
@@ -187,8 +198,10 @@ def front_mat(k, c):
     if k <= 1: return 'Black'
     if k == 2: return 'Grille' if (c < .8 and g in ('intake', 'wide', 'slim', 'tall')) else 'Paint'
     if g == 'horseshoe':
-        if k in (3, 4, 5) and c < .2: return 'Grille'
-        if k == 3 and c < .36: return 'Paint'
+        if 2 <= k <= 6 and c < .2: return 'Grille'
+        if k in (2, 3) and .3 < c < .9: return 'Grille'
+        if k == 5 and c >= .45: return 'Lens'
+        return 'Black' if k <= 1 else 'Paint'
     if k == 3:
         if c < .36 and not p.get('round_lamps'): return 'PlateF'
         if g == 'intake' and c < .8: return 'Grille'
@@ -207,7 +220,7 @@ def rear_mat(k, c):
     if k == 5: return 'LightR' if (c >= .6 or p.get('lightbar')) else ('Clear' if c >= .47 and TYPE != 'sports' else 'Paint')
     return 'Paint'
 for f, k, c in cap(rings[0], True): tags[f] = front_mat(k, c)
-for f, k, c in cap(rings[-1], False): tags[f] = rear_mat(k, c)
+for f, k, c in cap(rings[-1], False): tags[f] = rear_mat(k, c) if not p.get('twotone') else ('Carbon' if rear_mat(k, c) == 'Paint' else rear_mat(k, c))
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
 cl = bm.edges.layers.float.get('crease_edge') or bm.edges.layers.float.new('crease_edge')
 CRE = {2: .45, 5: .7, 6: .9, 7: .8, 8: .55}
@@ -221,7 +234,7 @@ for rg in (rings[0], rings[-1]):
         e = bm.edges.get((rg[k], rg[(k + 1) % n]))
         if e: e[cl] = .5
 # ------------------------------------------------------------------ to mesh, subdivide, cut arches, recess regions
-ORDER = ['Paint', 'Glass', 'Black', 'Under', 'Gap', 'Grille', 'Lens', 'LightF', 'LightR', 'Clear', 'PlateF', 'PlateR', 'Chrome', 'Livery']
+ORDER = ['Paint', 'Glass', 'Black', 'Under', 'Gap', 'Grille', 'Lens', 'LightF', 'LightR', 'Clear', 'PlateF', 'PlateR', 'Chrome', 'Livery', 'Carbon']
 bm.faces.index_update(); flut = {f.index: tags.get(f, 'Paint') for f in bm.faces}
 me = bpy.data.meshes.new('Body'); bm.to_mesh(me); bm.free()
 body = bpy.data.objects.new('Body', me); bpy.context.scene.collection.objects.link(body)
@@ -251,7 +264,7 @@ for wy in (yf, yr):
 # recess glass/lights/grilles/plates with insets (seals and bezels come from the inset rims)
 bm = bmesh.new(); bm.from_mesh(me); mi = {nm: i for i, nm in enumerate(ORDER)}
 def region(names): return [f for f in bm.faces if ORDER[f.material_index] in names]
-for names, th, dp, rim in ((('Glass',), .012, -.014, 'Black'), (('Lens', 'LightF', 'LightR', 'Clear'), .008, -.010, 'Black'), (('Grille',), .014, -.035, 'Chrome' if p['grille'] in ('tall', 'cab') else 'Black'),
+for names, th, dp, rim in ((('Glass',), .012, -.014, 'Black'), (('Lens', 'LightF', 'LightR', 'Clear'), .008, -.010, 'Black'), (('Grille',), .014, -.035, 'Chrome' if p['grille'] in ('tall', 'cab', 'horseshoe') else 'Black'),
                            (('PlateF', 'PlateR'), .006, .006, 'Black')):
     fs = region(names)
     if not fs: continue
@@ -284,7 +297,7 @@ for wy in (yf, yr):   # arch liners and lips
 cw_y = Y(p['cowl']); dk_y = Y(p['deck'])
 for sx in (-1, 1):   # mirrors on the doors at the A-pillar base, door handles, side repeaters
     mx = sx * (W2 * .99); my = cw_y + .16; mz = zb + .07
-    prim('mirror', 'Paint', lambda bm, sx=sx: cube(bm, (sx * (W2 + .09), my, mz + .02), (.17, .09, .11), bev=.03))
+    prim('mirror', 'Carbon' if p.get('twotone') else 'Paint', lambda bm, sx=sx: cube(bm, (sx * (W2 + .09), my, mz + .02), (.17, .09, .11), bev=.03))
     prim('mglass', 'Chrome', lambda bm, sx=sx: cube(bm, (sx * (W2 + .09), my + .048, mz + .02), (.14, .008, .085)))
     prim('stalk', 'Black', lambda bm, sx=sx: cube(bm, (sx * (W2 + .02), my, mz - .015), (.08, .05, .035)))
     for d0, d1 in zip(p['doors'][:-1], p['doors'][1:]) if len(p['doors']) > 2 else [(p['doors'][0], p['doors'][1])]:
@@ -309,25 +322,29 @@ if not p.get('round_lamps'):
                 for q in range(4): bm.faces.new((vs[j][q], vs[j][(q + 1) % 4], vs[j + 1][(q + 1) % 4], vs[j + 1][q]))
         prim('drl', 'LightF', drl)
 if p.get('cline'):
+    def surf_x(t, z):   # body half-width at height z on section t (from the cage ring)
+        h = ring(t)
+        for a, b in zip(h[2:8], h[3:9]):
+            if a[1] <= z <= b[1]: return lerp(a[0], b[0], (z - a[1]) / max(1e-6, b[1] - a[1]))
+        return h[8][0] if z > h[8][1] else h[2][0]
+    path = [(lerp(.42, C_T0, k / 6), top(lerp(.42, C_T0, k / 6)) - .09) for k in range(6)]
+    for k in range(25):
+        th = math.pi / 2 - k / 24 * math.pi; path.append((C_T0 + C_A * math.cos(th), min(top(C_T0) - .09, C_Z0 + C_B * math.sin(th))))
+    path += [(lerp(C_T0, .31, k / 8), C_Z0 - C_B) for k in range(1, 9)]
     def cline(bm):
-        pts = []
-        for k in range(29):
-            a = k / 28
-            if a < .35: t, z = lerp(p['wstop'] - .02, .66, a / .35), lerp(top(p['wstop']) - .05, beltb(.66) - .02, sm(0, 1, a / .35))
-            else:
-                b = (a - .35) / .65; ang = b * math.pi; t = .66 - .2 * math.sin(ang) * .35 - .02 * b; z = lerp(beltb(.66) - .02, rk + .1, (1 - math.cos(ang)) / 2)
-                t = .655 - .07 * math.sin(ang) - .18 * b
-            y = Y(t); pts.append((t, y, z))
         for sx in (-1, 1):
             vs = []
-            for t, y, z in pts:
-                hz = heights(t); xw = W2 * plan(t)
-                xs = xw if z < hz[4] else lerp(xw - .03, W2 * wroof(t), min(1, (z - hz[4]) / max(.05, top(t) - .075 - hz[4])))
-                x = sx * (xs + .012); vs.append([bm.verts.new((x + sx * dx, y + dy, z + dz)) for dx, dy, dz in ((0, -.03, 0), (0, .03, 0), (.012, .03, 0), (.012, -.03, 0))])
+            for t, z in path:
+                x = sx * (surf_x(t, z) + .006); y = Y(t)
+                vs.append([bm.verts.new((x + sx * dx, y + dy, z + dz)) for dx, dy, dz in ((0, 0, -.022), (.014, 0, -.022), (.014, 0, .022), (0, 0, .022))])
             for j in range(len(vs) - 1):
                 for q in range(4): bm.faces.new((vs[j][q], vs[j][(q + 1) % 4], vs[j + 1][(q + 1) % 4], vs[j + 1][q]))
     prim('cline', 'Chrome', cline)
-    prim('fin', 'Paint', lambda bm: cube(bm, (0, Y(p['roofend']) + .2, top(p['roofend'] + .03) + .04), (.03, .9, .09), bev=.01))
+    prim('fin', 'Carbon', lambda bm: cube(bm, (0, Y(.66), top(.66) + .025), (.025, (.80 - .52) * L, .06), bev=.008))       # roof spine
+    prim('spine', 'Paint', lambda bm: cube(bm, (0, Y(.19), top(.19) + .006), (.05, (.33 - .05) * L, .03), rx=.09, bev=.01))   # hood centre ridge
+    prim('wing', 'Carbon', lambda bm: cube(bm, (0, L / 2 - .32, top(.93) + .035), (W - .5, .42, .025), rx=-.05, bev=.008))     # flush active wing
+    for k in (-1.5, -.5, .5, 1.5): prim('pipe', 'Chrome', lambda bm, k=k: cyl(bm, (k * .085, L / 2 - .03, Rr[0] + .07), .045, .14, 'Y', 14))
+    for k in range(5): prim('diff', 'Black', lambda bm, k=k: cube(bm, (-.6 + k * .3, L / 2 - .2, Rr[0] - .03), (.02, .4, .12)))
 # wipers
 for sx in (-.28, .28):
     prim('wiper', 'Black', lambda bm, sx=sx: cube(bm, (sx, cw_y + .05, top(p['cowl']) + .03), (.55, .02, .015), rz=.12 * (1 if sx > 0 else -1)))
@@ -361,7 +378,7 @@ if TYPE not in ('cab',):
     prim('fin', 'Black', lambda bm: cube(bm, (0, Y(p['roofend']) - .12, top(p['roofend'] - .03) + .03), (.06, .2, .07), rx=.3, bev=.02))
 if p.get('rails'):
     for sx in (-1, 1): prim('rail', 'Black' if TYPE == 'police' else 'Chrome', lambda bm, sx=sx: cube(bm, (sx * (W2 * wroof(.6) - .06), (Y(p['wstop']) + Y(p['roofend'])) / 2, H + .03), (.04, (p['roofend'] - p['wstop']) * L * .9, .04), bev=.012))
-if p.get('spoiler'):
+if p.get('spoiler') and not p.get('twotone'):
     prim('spoiler', 'Paint', lambda bm: cube(bm, (0, L / 2 - .2, top(.96) + .1), (W - .32, .26, .03), rx=-.08, bev=.01))
     for sx in (-1, 1): prim('post', 'Black', lambda bm, sx=sx: cube(bm, (sx * .55, L / 2 - .2, top(.96) + .05), (.05, .08, .1)))
 if p.get('round_lamps'):   # London cab face: round headlamps in chrome bezels, chrome grille and bumper, amber TAXI sign
@@ -393,7 +410,7 @@ bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', export_apply=True, 
 import json, os
 SPEC = os.path.join(os.path.dirname(OUT), 'specs.json'); sp = json.load(open(SPEC)) if os.path.exists(SPEC) else {}
 tf, tr = p['FO'] / L, (p['FO'] + p['WB']) / L
-track = min(W2 * plan(tf), W2 * plan(tr)) - .32 * R - .03
+track = min(W2 * plan(tf), W2 * plan(tr)) - .32 * R - .055
 sp[TYPE] = dict(L=L, W=W, H=H, r=R, wz=[round(tf, 4), round(tr, 4)], track=round(track, 3))
 json.dump(sp, open(SPEC, 'w'), indent=1)
 print('exported', OUT, len(car.data.polygons), 'faces', sum(len(pl.vertices) - 2 for pl in car.data.polygons), 'tris')

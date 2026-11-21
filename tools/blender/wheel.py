@@ -67,3 +67,25 @@ for k in range(10):
     a = k / 10 * math.tau; bmesh.ops.create_cone(bm, cap_ends=True, segments=6, radius1=.03, radius2=.025, depth=.05, matrix=Matrix.Translation((.26, math.cos(a) * .3, math.sin(a) * .3)) @ Matrix.Rotation(math.pi / 2, 4, 'Y'))
 obj('hub', bm, chrome)
 export(os.path.join(ROOT, 'assets', 'cars', 'buswheel.glb'))
+# ------------------------------------------------------------------ hypercar: low-profile tyre, ten polished twin spokes over dark gunmetal, big drilled disc
+bpy.ops.wm.read_factory_settings(use_empty=True)
+tyre = mat('Tyre', '#141414', .88, 0); rim = mat('Rim', '#d2d6da', .18, 1); dark = mat('Hub', '#202327', .4, .7); dsc = mat('Disc', '#8a8f94', .4, .8)
+bm = bmesh.new(); lathe(bm, [(.74, -.31), (.79, -.335), (.88, -.34), (.96, -.31), (.995, -.24), (1.0, -.1), (1.0, .1), (.995, .24), (.96, .31), (.88, .34), (.79, .335), (.74, .31)], 48); obj('tyre', bm, tyre)
+bm = bmesh.new(); lathe(bm, [(.745, .32), (.73, .2), (.7, -.26), (.2, -.28), (.0, -.28)], 40); obj('barrel', bm, dark)
+bm = bmesh.new(); lathe(bm, [(.0, .2), (.15, .21), (.2, .19), (.69, .26), (.745, .3), (.76, .315), (.745, .33), (.71, .325)], 48); obj('face', bm, dark)
+bm = bmesh.new()
+for k in range(20):
+    a = (k // 2) / 10 * math.tau + (k % 2 - .5) * .1
+    pts = []
+    for j in range(6):
+        f = j / 5; rr = .16 + (.72 - .16) * f; xx = .3 + .02 * f - math.sin(f * math.pi) * .07; w = .028 - .01 * f
+        ca, sa = math.cos(a + f * .1), math.sin(a + f * .1); tx, ty = -sa, ca
+        pts.append([bm.verts.new((xx + dx, ca * rr + tx * w * sw, sa * rr + ty * w * sw)) for dx, sw in ((.025, -1), (.025, 1), (-.025, 1), (-.025, -1))])
+    for j in range(len(pts) - 1):
+        for q in range(4): bm.faces.new((pts[j][q], pts[j][(q + 1) % 4], pts[j + 1][(q + 1) % 4], pts[j + 1][q]))
+    bm.faces.new(pts[0][::-1]); bm.faces.new(pts[-1])
+lathe(bm, [(.72, .325), (.76, .33), (.775, .315), (.765, .295)], 48)
+lathe(bm, [(.0, .345), (.07, .345), (.11, .33), (.16, .3)], 24)
+obj('spokes', bm, rim, smooth=False)
+bm = bmesh.new(); disc(bm, -.04, .66, .06, 40); obj('disc', bm, dsc)
+export(os.path.join(ROOT, 'assets', 'cars', 'wheel_hyper.glb'))
