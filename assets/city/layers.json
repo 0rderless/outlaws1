@@ -1,0 +1,161 @@
+{
+ "size": 512,
+ "layers": [
+  {
+   "name": "brick",
+   "rough": 0.9,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "stone",
+   "rough": 0.85,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "paint",
+   "rough": 0.55,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "slate",
+   "rough": 0.7,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "asphalt",
+   "rough": 0.95,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "road",
+   "rough": 0.93,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "roadring",
+   "rough": 0.93,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "pavement",
+   "rough": 0.9,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "kerb",
+   "rough": 0.8,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "grass",
+   "rough": 1,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "gravel",
+   "rough": 1,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "bark",
+   "rough": 0.95,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "leaves",
+   "rough": 0.75,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "metal",
+   "rough": 0.4,
+   "metal": 0.65,
+   "night": 0
+  },
+  {
+   "name": "concrete",
+   "rough": 0.9,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "wood",
+   "rough": 0.8,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "zebra",
+   "rough": 0.93,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "gold",
+   "rough": 0.3,
+   "metal": 1,
+   "night": 0
+  },
+  {
+   "name": "steel",
+   "rough": 0.25,
+   "metal": 0.9,
+   "night": 0
+  },
+  {
+   "name": "redasphalt",
+   "rough": 0.93,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "clock",
+   "rough": 0.45,
+   "metal": 0,
+   "night": 0.6
+  },
+  {
+   "name": "ads",
+   "rough": 0.5,
+   "metal": 0,
+   "night": 0.8
+  },
+  {
+   "name": "sandstone",
+   "rough": 0.85,
+   "metal": 0,
+   "night": 0
+  },
+  {
+   "name": "lampglass",
+   "rough": 0.2,
+   "metal": 0,
+   "night": 3.0
+  },
+  {
+   "name": "signal",
+   "rough": 0.3,
+   "metal": 0,
+   "night": 2.0
+  },
+  {
+   "name": "leather",
+   "rough": 0.6,
+   "metal": 0,
+   "night": 0
+  }
+ ]
+}
