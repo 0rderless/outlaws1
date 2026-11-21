@@ -86,7 +86,7 @@ def bounds(lines):
     return [(lines[i] + RW, lines[i + 1] - RW) for i in range(len(lines) - 1)]
 XB = bounds(XL); ZB = [b for b in bounds(ZL) if not (b[0] < 0 < b[1])]
 def in_zone(x0, x1, z0, z1): return next((zn for zn in ZONES if x0 >= zn['x0'] - 1 and x1 <= zn['x1'] + 1 and z0 >= zn['z0'] - 1 and z1 <= zn['z1'] + 1), None)
-SPECIAL = {(200, -85): 'tol', (120, 85): 'shard', (120, -165): 'gherkin', (200, -165): 'cheese', (40, -245): 'walkie', (-120, -165): 'park', (-280, 245): 'park'}
+SPECIAL = {(40, -165): 'stpauls', (200, -85): 'tol', (120, 85): 'shard', (120, -165): 'gherkin', (200, -165): 'cheese', (40, -245): 'walkie', (-120, -165): 'park', (-280, 245): 'park'}
 blocks = []
 for x0, x1 in XB:
     for z0, z1 in ZB:
@@ -108,7 +108,7 @@ def inscribed(x0, x1, z0, z1, side):
     if side == 's': return x0, x1, z0, min(lim(x0), lim(x1))
     if side == 'w': return -min(lim(z0), lim(z1)), x1, z0, z1
     return x0, min(lim(z0), lim(z1)), z0, z1
-OUTER_KIND = {(-1, -245): 'park', (-1, 245): 'park', (1, 78): 'towers'}
+OUTER_KIND = {(-1, -245): 'park', (-1, 245): 'park', (1, 78): 'towers', (-1, -78): 'stadium'}
 for x0, x1, z0, z1, side in regions:
     poly = clip_rect(DISC, x0, x1, z0, z1)
     if not poly or area(poly) < 40: continue
@@ -124,7 +124,7 @@ for x0, x1, z0, z1, side in regions:
                        cx=cx, cz=cz, kind='district', outer=1, side=side, poly=[[round(p[0], 2), round(p[1], 2)] for p in poly]))
     if rx1 - rx0 < 10 or rz1 - rz0 < 10: continue
     # split deep districts into street-sized blocks with walkways between them
-    along_z = side in 'ns'; lo, hi = (rz0, rz1) if along_z else (rx0, rx1); n = max(1, math.ceil((hi - lo) / 70)); gap = 10
+    along_z = side in 'ns'; lo, hi = (rz0, rz1) if along_z else (rx0, rx1); n = 1 if kind == 'stadium' else max(1, math.ceil((hi - lo) / 70)); gap = 10
     seg = (hi - lo - gap * (n - 1)) / n
     for k in range(n):
         a0 = lo + k * (seg + gap); a1 = a0 + seg
@@ -206,6 +206,16 @@ col(186.6, 213.4, -96.4, -73.6, 19); lm('TOWER OF LONDON', 200, -85)
 col(100, 140, 65, 105, 150); lm('THE SHARD', 120, 85)
 col(110, 130, -175, -155, 88); lm('THE GHERKIN', 120, -165)
 col(29, 51, -256, -234, 86); col(186, 214, -183, -147, 117)
+lm("ST PAUL'S CATHEDRAL", 40, -165)
+col(10, 64, -177, -153, 24); col(38, 52, -186, -144, 24); col(59, 71.5, -172.5, -157.5, 15)
+for sz in (-1, 1): col(11, 18, -165 + sz * 10.5 - 3.4, -165 + sz * 10.5 + 3.4, 32); col(39.5, 50.5, -165 + sz * 21 - 5.6, -165 + sz * 21 + 5.6, 14)
+for _b in blocks:
+    if _b['kind'] == 'stadium':   # Stamford Bridge: stands, closed corners; the pitch is grass
+        x0, x1, z0, z1 = _b['x0'] + 3, _b['x1'] - 3, _b['z0'] + 3, _b['z1'] - 3; D = 12
+        greens.append([x0 + D, z0 + D, x1 - D, z1 - D])
+        col(x0, x0 + D, z0 + D, z1 - D, 15); col(x1 - D, x1, z0 + D, z1 - D, 15); col(x0 + D, x1 - D, z0, z0 + D, 15); col(x0 + D, x1 - D, z1 - D, z1, 15)
+        col(x1 - D, x1, z0, z0 + D, 12); col(x0, x0 + D, z1 - D, z1, 12)
+        lm('STAMFORD BRIDGE', (x0 + x1) / 2, (z0 + z1) / 2)
 lm('THE MALL', -80, -125, False); lm('SOUTH BANK', -40, 90, False); lm('THE CITY', 160, -230, False); lm("ST THOMAS' HOSPITAL", -200, 85); lm('SCOTLAND YARD', -40, -85); lm('CANARY WHARF', 360, -160); lm('HYDE PARK', -359, -245)
 # landmark gardens
 for x in range(-146, -101, 11):

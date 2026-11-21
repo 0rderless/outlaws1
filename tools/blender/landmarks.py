@@ -230,13 +230,111 @@ def tower_bridge():
                 pts.append((cx, yy, zz))
             for a, b in zip(pts[:-1], pts[1:]):
                 acc.beam(a, b, .75, 'paint', BL); acc.beam((a[0], a[1] + .42, a[2]), (b[0], b[1] + .42, b[2]), .16, 'paint', WT)
-            for a in pts[1:-1]: acc.beam((a[0], a[1], a[2]), (a[0], .9, a[2]), .07, 'paint', WT)
-            acc.beam(pts[-1], (cx, 1.0, sz * 41.5), .65, 'paint', BL)
+            for a in pts[1:-1]:
+                if abs(a[2]) < RIVER - .5: acc.beam((a[0], a[1], a[2]), (a[0], .9, a[2]), .07, 'paint', WT)
         # shore towers at the river bank
         for sx in (-1, 1):
             tx = X + sx * (HW + 1.6); tz = sz * 33.5; a2 = O(tx, tz)
             a2.cbox(tx, 0, tz, 3.2, 11, 3.2, 'stone', ST); a2.cbox(tx, 11, tz, 3.6, .4, 3.6, 'sandstone', '#c4b89c', ao=False)
             pyramid(a2, tx, tz, 1.8, 11.4, 15.5, 'slate', SL); a2.sphere(tx, 15.7, tz, .25, 'gold', GOLD, 6, 4)
+def st_pauls():
+    """St Paul's Cathedral: Portland-stone nave and transepts, two-storey west portico, twin west towers, colonnaded drum and lead dome with lantern"""
+    cx, cz = 40, -165; acc, g = O(cx, cz), Gl(cx, cz)
+    PS, PS2, LEAD = '#ece6d6', '#d6ceb9', '#87918f'
+    acc.box(4, 13, 0, .45, cz - 11, cz + 11, 'stone', PS2)                                      # west steps
+    acc.box(14, 64, 0, 15, cz - 12, cz + 12, 'stone', PS); acc.box(14, 64, 15, 19.5, cz - 7.5, cz + 7.5, 'stone', PS)
+    for sz in (-1, 1):
+        acc.box(38, 52, 0, 15, min(cz + sz * 12, cz + sz * 21), max(cz + sz * 12, cz + sz * 21), 'stone', PS)
+        acc.cyl(45, cz + sz * 21, 5.2, 5.2, 0, 13.5, 20, 'stone', PS2)                           # rounded transept porticos
+        for k in range(9):
+            a = (k / 8 - .5) * math.pi; acc.cyl(45 + math.sin(a) * 5.9, cz + sz * (21 + math.cos(a) * 5.9), .38, .38, 0, 12.5, 8, 'stone', PS)
+        for x in range(17, 63, 4):                                                                   # two tiers of windows along the aisles
+            if 37 < x < 53: continue
+            facade_windows(g, 'z', cz + sz * 12, x - .9, x + .9, 3.5, 8, 1, .9, sz, .35); facade_windows(g, 'z', cz + sz * 12, x - .9, x + .9, 10, 13.5, 1, .9, sz, .35)
+            facade_windows(g, 'z', cz + sz * 7.5, x - .8, x + .8, 15.8, 18.6, 1, .9, sz, .3)
+        for y in (9, 14.6): acc.box(14, 64, y, y + .5, min(cz + sz * 12, cz + sz * 12.35), max(cz + sz * 12, cz + sz * 12.35), 'stone', PS2, ao=False)
+    for y0, y1, h in ((15, 15.9, 12.3), (19.5, 20.3, 7.8)): acc.box(13.8, 64.2, y0, y1, cz - h, cz + h, 'stone', PS2, ao=False)   # balustrades
+    for sz in (-1, 1):                                                                               # lead roof over the nave
+        acc.quad((14, 20.3, cz + sz * 7.5), (64, 20.3, cz + sz * 7.5), (64, 23.5, cz), (14, 23.5, cz), 'slate', LEAD) if sz > 0 else acc.quad((64, 20.3, cz - 7.5), (14, 20.3, cz - 7.5), (14, 23.5, cz), (64, 23.5, cz), 'slate', LEAD)
+    acc.cyl(64, cz, 7.5, 7.5, 0, 15, 20, 'stone', PS); acc.sphere(64, 15, cz, 7.5, 'slate', LEAD, 16, 6, sy=.55, half=True)   # apse
+    # west front: two-storey portico with paired columns and a pediment
+    for k in range(12):
+        z = cz - 8.25 + k * 1.5; acc.cyl(10.8, z, .42, .42, .45, 9.2, 10, 'stone', PS)
+    acc.box(9.8, 14, 9.2, 10.4, cz - 9, cz + 9, 'stone', PS2)
+    for k in range(8):
+        z = cz - 5.6 + k * 1.6; acc.cyl(11.2, z, .36, .36, 10.4, 17.2, 10, 'stone', PS)
+    acc.box(10.4, 14, 17.2, 18.2, cz - 6.5, cz + 6.5, 'stone', PS2)
+    acc.face([(10.4, 18.2, cz + 6.5), (10.4, 18.2, cz - 6.5), (10.4, 21.5, cz)], 'stone', PS2); acc.face([(14, 18.2, cz - 6.5), (14, 18.2, cz + 6.5), (14, 21.5, cz)], 'stone', PS2)
+    for sz in (-1, 1): acc.quad((10.4, 18.2, cz + sz * 6.5), (14, 18.2, cz + sz * 6.5), (14, 21.5, cz), (10.4, 21.5, cz), 'slate', LEAD) if sz > 0 else acc.quad((14, 18.2, cz - 6.5), (10.4, 18.2, cz - 6.5), (10.4, 21.5, cz), (14, 21.5, cz), 'slate', LEAD)
+    acc.box(12, 14, .45, 17.2, cz - 6.5, cz + 6.5, 'stone', PS)
+    # twin baroque west towers
+    for sz in (-1, 1):
+        tz = cz + sz * 10.5
+        acc.box(11, 18, 0, 20, tz - 3.4, tz + 3.4, 'stone', PS); acc.box(10.8, 18.2, 20, 20.7, tz - 3.6, tz + 3.6, 'stone', PS2, ao=False)
+        acc.cyl(14.5, tz, 2.6, 2.6, 20.7, 26.5, 12, 'stone', PS)
+        for k in range(8): a = k / 8 * math.tau; acc.cyl(14.5 + math.cos(a) * 3.1, tz + math.sin(a) * 3.1, .28, .28, 20.7, 26, 6, 'stone', PS)
+        acc.cyl(14.5, tz, 3.4, 3.4, 26.5, 27.2, 12, 'stone', PS2); acc.sphere(14.5, 27.2, tz, 2.4, 'slate', LEAD, 12, 5, sy=1.1, half=True)
+        acc.cyl(14.5, tz, .9, .4, 29.8, 31.6, 8, 'stone', PS); acc.sphere(14.5, 32.2, tz, .6, 'gold', GOLD, 8, 5)
+    # the dome: square base, colonnaded drum, attic, lead dome with ribs, lantern, golden ball and cross
+    dx = 45
+    acc.box(dx - 9, dx + 9, 19.5, 23, cz - 9, cz + 9, 'stone', PS)
+    acc.cyl(dx, cz, 8.8, 8.8, 23, 31, 32, 'stone', PS2)
+    for k in range(32):
+        a = k / 32 * math.tau; acc.cyl(dx + math.cos(a) * 10.2, cz + math.sin(a) * 10.2, .38, .38, 23, 30.2, 8, 'stone', PS)
+    acc.cyl(dx, cz, 10.8, 10.8, 30.2, 31.3, 32, 'stone', PS2); acc.cyl(dx, cz, 8.5, 8.5, 31.3, 34, 32, 'stone', PS)
+    acc.sphere(dx, 34, cz, 8.5, 'slate', LEAD, 32, 10, sy=1.42, half=True)
+    for k in range(16):
+        a = k / 16 * math.tau
+        for j in range(8):
+            t0, t1 = j / 8 * math.pi / 2, (j + 1) / 8 * math.pi / 2
+            p0 = (dx + math.cos(a) * 8.55 * math.cos(t0), 34 + 8.5 * 1.42 * math.sin(t0), cz + math.sin(a) * 8.55 * math.cos(t0))
+            p1 = (dx + math.cos(a) * 8.55 * math.cos(t1), 34 + 8.5 * 1.42 * math.sin(t1), cz + math.sin(a) * 8.55 * math.cos(t1))
+            if j < 7: acc.beam(p0, p1, .16, 'slate', '#9aa4a2')
+    acc.cyl(dx, cz, 1.7, 1.7, 45.5, 49.5, 12, 'stone', PS)
+    for k in range(8): a = k / 8 * math.tau; acc.cyl(dx + math.cos(a) * 2.0, cz + math.sin(a) * 2.0, .18, .18, 45.5, 49, 6, 'stone', PS)
+    acc.sphere(dx, 49.5, cz, 1.8, 'slate', LEAD, 12, 5, sy=.9, half=True); acc.cyl(dx, cz, .25, .25, 51, 52.6, 8, 'gold', GOLD)
+    acc.sphere(dx, 53.1, cz, .6, 'gold', GOLD, 10, 6); acc.cbox(dx, 53.6, cz, .16, 1.8, .16, 'gold', GOLD); acc.cbox(dx, 54.6, cz, .16, .16, .9, 'gold', GOLD)
+def stadium(b):
+    """Stamford Bridge: striped pitch with markings and goals, four roofed stands of blue tiered seats, floodlights, open corners to drive in"""
+    x0, x1, z0, z1 = b['x0'] + 3, b['x1'] - 3, b['z0'] + 3, b['z1'] - 3; D = 12
+    px0, px1, pz0, pz1 = x0 + D, x1 - D, z0 + D, z1 - D; cx, cz = (px0 + px1) / 2, (pz0 + pz1) / 2
+    acc = O(cx, cz); Y = KERB + .1 + .005
+    n = 12
+    for k in range(n):                                                                               # mown stripes
+        if k % 2: acc.quad((px0 + (px1 - px0) * k / n, Y, pz1), (px0 + (px1 - px0) * (k + 1) / n, Y, pz1), (px0 + (px1 - px0) * (k + 1) / n, Y, pz0), (px0 + (px1 - px0) * k / n, Y, pz0), 'grass', '#c7dcb6', ao=False)
+    L_ = lambda a, b_, c, d: acc.quad((a, Y + .005, d), (b_, Y + .005, d), (b_, Y + .005, c), (a, Y + .005, c), 'paint', '#f4f4f0', ao=False)
+    m = 2.5; ax0, ax1, az0, az1 = px0 + m, px1 - m, pz0 + m, pz1 - m; w = .12
+    L_(ax0, ax1, az0, az0 + w); L_(ax0, ax1, az1 - w, az1); L_(ax0, ax0 + w, az0, az1); L_(ax1 - w, ax1, az0, az1); L_(cx - w / 2, cx + w / 2, az0, az1)
+    for k in range(32):                                                                              # centre circle
+        a0, a1 = k / 32 * math.tau, (k + 1) / 32 * math.tau; r = 6.5
+        acc.quad((cx + math.cos(a0) * r, Y + .005, cz + math.sin(a0) * r), (cx + math.cos(a1) * r, Y + .005, cz + math.sin(a1) * r), (cx + math.cos(a1) * (r - w), Y + .005, cz + math.sin(a1) * (r - w)), (cx + math.cos(a0) * (r - w), Y + .005, cz + math.sin(a0) * (r - w)), 'paint', '#f4f4f0', ao=False)
+    for sx, ex in ((1, ax0), (-1, ax1)):                                                             # penalty boxes and goals
+        bx = ex + sx * 12; L_(min(ex, bx), max(ex, bx), cz - 15, cz - 15 + w); L_(min(ex, bx), max(ex, bx), cz + 15 - w, cz + 15); L_(min(bx, bx + sx * w), max(bx, bx + sx * w), cz - 15, cz + 15)
+        gx = ex - sx * .1
+        for zz in (cz - 3.66, cz + 3.66): acc.cyl(gx, zz, .07, .07, Y, Y + 2.44, 8, 'paint', '#ffffff')
+        acc.box(gx - .07, gx + .07, Y + 2.37, Y + 2.51, cz - 3.66, cz + 3.66, 'paint', '#ffffff')
+        acc.box(min(gx, gx - sx * 2), max(gx, gx - sx * 2), Y + 2.4, Y + 2.44, cz - 3.66, cz + 3.66, 'metal', '#9aa0a6', ao=False)
+    BLUE, WHITE_, CLAD = '#1b3f9e', '#e9eef4', '#cfd3d8'
+    def stand(axis, sgn, a0, a1):
+        """tiers rising away from the pitch edge; axis 'x' -> stand runs along z on the x side"""
+        edge = (px0 if sgn < 0 else px1) if axis == 'x' else (pz0 if sgn < 0 else pz1)
+        for k in range(10):
+            i0, i1 = edge + sgn * k * 1.1, edge + sgn * (k + 1) * 1.1; h = .9 + k * .75
+            lo, hi = min(i0, i1), max(i0, i1); col = WHITE_ if k in (4,) else BLUE
+            if axis == 'x': acc.box(lo, hi, 0, h, a0, a1, 'concrete', '#9aa0a8'); acc.box(lo + .3 * (sgn < 0), hi - .3 * (sgn > 0), h, h + .45, a0, a1, 'paint', col)
+            else: acc.box(a0, a1, 0, h, lo, hi, 'concrete', '#9aa0a8'); acc.box(a0, a1, h, h + .45, lo + .3 * (sgn < 0), hi - .3 * (sgn > 0), 'paint', col)
+        back = edge + sgn * 11.5; lo, hi = min(back, back + sgn * .5), max(back, back + sgn * .5)
+        if axis == 'x':
+            acc.box(lo, hi, 0, 14, a0, a1, 'concrete', CLAD); acc.box(lo - .05, hi + .05, 10, 11, a0, a1, 'paint', BLUE)
+            acc.box(min(edge - sgn * 1.5, back + sgn * .5), max(edge - sgn * 1.5, back + sgn * .5), 14, 14.5, a0, a1, 'metal', '#e4e7ea')
+            acc.box(min(edge - sgn * 1.5, edge - sgn * 1.0), max(edge - sgn * 1.5, edge - sgn * 1.0), 13.2, 14, a0, a1, 'lampglass', '#fff7e6', ao=False)
+        else:
+            acc.box(a0, a1, 0, 14, lo, hi, 'concrete', CLAD); acc.box(a0, a1, 10, 11, lo - .05, hi + .05, 'paint', BLUE)
+            acc.box(a0, a1, 14, 14.5, min(edge - sgn * 1.5, back + sgn * .5), max(edge - sgn * 1.5, back + sgn * .5), 'metal', '#e4e7ea')
+            acc.box(a0, a1, 13.2, 14, min(edge - sgn * 1.5, edge - sgn * 1.0), max(edge - sgn * 1.5, edge - sgn * 1.0), 'lampglass', '#fff7e6', ao=False)
+    stand('x', -1, pz0, pz1); stand('x', 1, pz0, pz1); stand('z', -1, px0, px1); stand('z', 1, px0, px1)
+    for (ax, az) in ((x1 - D, z0), (x0, z1 - D)):                                                     # two closed corners (offices); the other two are open entrances
+        acc.box(ax, ax + D, 0, 12, az, az + D, 'concrete', CLAD); acc.box(ax - .05, ax + D + .05, 9, 10, az - .05, az + D + .05, 'paint', BLUE)
 def tower_of_london():
     cx, cz, S, Wl = 200, -85, '#e6dfcf', '#cdc1a3'; acc, g = O(cx, cz), Gl(cx, cz)
     def seg(x0, x1, z0, z1):
@@ -290,4 +388,6 @@ def cheesegrater():
         acc.box(185.8, 214.2, y1 - .4, y1, z0 - .2, z1 + .2, 'paint', '#f0c419')
         for xx in (186, 200, 214): acc.box(xx - .25, xx + .25, y0, y1, z1, z1 + .4, 'paint', '#f0c419', top=False)
 EYE = None
-big_ben(-144, -42); parliament(); palace(); london_eye(); tower_bridge(); tower_of_london(); shard(); gherkin(); walkie(); cheesegrater()
+big_ben(-144, -42); parliament(); palace(); london_eye(); tower_bridge(); tower_of_london(); shard(); gherkin(); walkie(); cheesegrater(); st_pauls()
+for _b in L['blocks']:
+    if _b['kind'] == 'stadium': stadium(_b)
