@@ -181,7 +181,7 @@ body.freemouse #c{cursor:none}
 <div id="radio" class="overlay" hidden>
   <div class="panel wide">
     <h2>Car radio</h2>
-    <p class="sub">Pick a station. In a vehicle, Q and E or the mouse wheel change station. Songs you add stay on this device.</p>
+    <p class="sub">Pick a song. In a vehicle, Q and E or the mouse wheel change it. You can add more songs from your iPad.</p>
     <div id="radio-list"></div>
     <div class="btns"><button class="btn" id="rd-close">Play</button><button class="btn ghost" id="rd-add">Add songs</button></div>
     <input type="file" id="songfile" accept="audio/*,video/*,.m4a,.mp3,.mov,.mp4,.wav,.aac" multiple hidden>
@@ -246,7 +246,7 @@ const LAYOUTS = {
   pad:   { joy: [.13, .76, 178], fire: [.895, .75, 118], jump: [.79, .89, 82], enter: [.905, .54, 84], weapon: [.79, .63, 76], brake: [.69, .89, 84] },
   desk:  { joy: [.12, .74, 150], fire: [.89, .72, 100], jump: [.79, .87, 70], enter: [.9, .5, 72], weapon: [.79, .59, 64], brake: [.69, .87, 72] }
 };
-let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24, mouse: 'auto', spType: 'hyper', spCol: '#0b0b0c', radioVol: .8, radioSt: 1 };
+let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24, mouse: 'auto', spType: 'hyper', spCol: '#0b0b0c', radioVol: .8, radioId: 'b0' };
 try { const s = JSON.parse(localStorage.getItem('ls-settings3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
 const saveSettings = () => { try { localStorage.setItem('ls-settings3', JSON.stringify(S)); } catch (e) {} };
 
@@ -1545,7 +1545,7 @@ function enterCar(c) {
   }
   if (c.police && c.crew) for (const q of c.crew) if (q.state === 'board') q.state = 'cop';
   c.ai = false; c.driver = false; c.wps = null; c.mode = 'player'; c.vx = Math.sin(c.yaw) * c.speed; c.vz = Math.cos(c.yaw) * c.speed;
-  c.fallen = false; enterT = now; player.mode = 'car'; player.car = c; $('#speed').hidden = false; cam.dist = c.bike ? 5.6 : c.type === 'bus' ? 15 : c.tank ? 12 : c.heli ? 14 : 8.5; refreshButtons(); radioApply();
+  c.fallen = false; enterT = now; player.mode = 'car'; player.car = c; if (RADIO.list[RADIO.cur] && RADIO.list[RADIO.cur].id !== 'off') toast(RADIO.list[RADIO.cur].name, 'RADIO'); $('#speed').hidden = false; cam.dist = c.bike ? 5.6 : c.type === 'bus' ? 15 : c.tank ? 12 : c.heli ? 14 : 8.5; refreshButtons(); radioApply();
 }
 function refreshButtons() { const car = player.mode === 'car'; $('#radiobtn').hidden = !car; ctls.jump.hidden = car; ctls.brake.hidden = !car; ctls.enter.textContent = car ? 'Exit' : 'Ride'; }
 const _cf = new THREE.Vector3();
@@ -2057,14 +2057,17 @@ function spawnVehicle(type, col) {
   enterCar(c);
 }
 /* ================= car radio: an original phonk station plus your own songs (kept on this device) ================= */
-const RADIO = { list: [], cur: 1, gain: null, el: null, src: null, urls: {}, playing: false, ph: null };
+const BUILTIN_SONGS = [['Montagem Dominador (Slowed)', 'montagem-dominador.mp3'], ['Montagem Fearless (Ultra Slowed)', 'montagem-fearless.mp3'], ['Montagem Alquimia (Slowed)', 'montagem-alquimia.mp3'],
+  ['Isolation (Perfect Slowed)', 'isolation.mp3'], ['Montagem Ritmo Astral (Ultra Slowed)', 'montagem-ritmo-astral.mp3'], ['Montagem Impacto (Super Slowed)', 'montagem-impacto.mp3']];
+const RADIO = { list: [], cur: 0, gain: null, el: null, src: null, urls: {}, playing: false, ph: null };
 const RDB = { db: null };
 function radioDB() { return new Promise(res => { if (RDB.db) return res(RDB.db); try { const r = indexedDB.open('outlaws-radio', 1); r.onupgradeneeded = () => r.result.createObjectStore('songs', { keyPath: 'id', autoIncrement: true }); r.onsuccess = () => res(RDB.db = r.result); r.onerror = () => res(null); } catch (e) { res(null); } }); }
 async function radioLoad() {
   const db = await radioDB(); let songs = [];
   if (db) songs = await new Promise(res => { const q = db.transaction('songs').objectStore('songs').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => res([]); });
-  RADIO.list = [{ id: 'off', name: 'RADIO OFF' }, { id: 'fm', name: 'OUTLAWS FM' }].concat(songs.map(s => ({ id: s.id, name: s.name, blob: s.blob })));
-  RADIO.cur = clamp(S.radioSt === undefined ? 1 : S.radioSt, 0, RADIO.list.length - 1); renderRadioList();
+  RADIO.list = BUILTIN_SONGS.map((b, i) => ({ id: 'b' + i, name: b[0], url: 'assets/radio/' + b[1] }))
+    .concat([{ id: 'fm', name: 'OUTLAWS FM' }], songs.map(s => ({ id: s.id, name: s.name, blob: s.blob })), [{ id: 'off', name: 'RADIO OFF' }]);
+  const k = RADIO.list.findIndex(s => String(s.id) === String(S.radioId)); RADIO.cur = k >= 0 ? k : 0; renderRadioList();
 }
 async function radioAdd(files) {
   const db = await radioDB(); if (!db) { toast('SONGS NEED STORAGE', 'TURN OFF PRIVATE BROWSING'); return; }
@@ -2080,21 +2083,25 @@ function radioInit() {
   RADIO.gain = AC.createGain(); RADIO.gain.gain.value = 0; RADIO.gain.connect(AC.destination);
   RADIO.el = document.createElement('audio'); RADIO.el.preload = 'auto'; RADIO.el.setAttribute('playsinline', ''); document.body.appendChild(RADIO.el);
   try { RADIO.src = AC.createMediaElementSource(RADIO.el); RADIO.src.connect(RADIO.gain); } catch (e) { RADIO.src = null; }
-  RADIO.el.addEventListener('timeupdate', () => { const el = RADIO.el; if (el.duration > 6 && el.currentTime > el.duration - .6) el.currentTime = .9; });
-  RADIO.el.addEventListener('ended', () => { RADIO.el.currentTime = RADIO.el.duration > 6 ? .9 : 0; RADIO.el.play().catch(() => {}); });
+  const skip = () => (RADIO.el.dataset.raw === '1' && RADIO.el.duration > 6 ? .9 : 0);   // songs you add yourself get their lead-in skipped
+  RADIO.el.addEventListener('timeupdate', () => { const el = RADIO.el; if (el.dataset.raw === '1' && el.duration > 6 && el.currentTime > el.duration - .6) el.currentTime = skip(); });
+  RADIO.el.addEventListener('ended', () => { RADIO.el.currentTime = skip(); RADIO.el.play().catch(() => {}); });
 }
 function radioVolume() { return S.snd ? S.radioVol : 0; }
 function radioApply() { // start/stop whatever the selected station is, only while in a vehicle
   if (!AC) return; radioInit(); const st = RADIO.list[RADIO.cur], want = player.mode === 'car' && running && !paused && st && st.id !== 'off';
   const t = AC.currentTime; RADIO.gain.gain.cancelScheduledValues(t); RADIO.gain.gain.setTargetAtTime(want ? radioVolume() : 0, t, .25);
   phonk(want && st.id === 'fm');
-  if (want && st.blob) {
-    const url = RADIO.urls[st.id] || (RADIO.urls[st.id] = URL.createObjectURL(st.blob));
-    if (RADIO.el.dataset.id !== String(st.id)) { RADIO.el.src = url; RADIO.el.dataset.id = st.id; RADIO.el.addEventListener('loadedmetadata', () => { if (RADIO.el.duration > 6) RADIO.el.currentTime = .9; }, { once: true }); }
+  if (want && (st.blob || st.url)) {
+    const url = st.url || RADIO.urls[st.id] || (RADIO.urls[st.id] = URL.createObjectURL(st.blob));
+    if (RADIO.el.dataset.id !== String(st.id)) {
+      RADIO.el.src = url; RADIO.el.dataset.id = st.id; RADIO.el.dataset.raw = st.blob ? '1' : '0';
+      if (st.blob) RADIO.el.addEventListener('loadedmetadata', () => { if (RADIO.el.duration > 6) RADIO.el.currentTime = .9; }, { once: true });
+    }
     RADIO.el.play().catch(() => {});
   } else if (RADIO.el && !RADIO.el.paused) RADIO.el.pause();
 }
-function radioStep(d) { if (!RADIO.list.length) return; RADIO.cur = (RADIO.cur + d + RADIO.list.length) % RADIO.list.length; S.radioSt = RADIO.cur; saveSettings(); radioApply(); toast(RADIO.list[RADIO.cur].name, 'RADIO'); renderRadioList(); }
+function radioStep(d) { if (!RADIO.list.length) return; RADIO.cur = (RADIO.cur + d + RADIO.list.length) % RADIO.list.length; S.radioId = RADIO.list[RADIO.cur].id; saveSettings(); radioApply(); toast(RADIO.list[RADIO.cur].name, 'RADIO'); renderRadioList(); }
 function renderRadioList() {
   const L = $('#radio-list'); if (!L) return;
   L.innerHTML = RADIO.list.map((s, i) => `<div class="rd-row${i === RADIO.cur ? ' on' : ''}"><button class="rd-pick" data-i="${i}">${s.name}</button>${s.blob ? `<button class="rd-del" data-id="${s.id}" aria-label="Remove ${s.name}">✕</button>` : ''}</div>`).join('');
@@ -2103,7 +2110,7 @@ function openRadio() { paused = true; if (document.pointerLockElement) document.
 function closeRadio() { $('#radio').hidden = true; paused = false; if (!S.touch) lockPointer(); radioApply(); }
 $('#radio-list').addEventListener('click', e => {
   const p = e.target.closest('.rd-pick'), d = e.target.closest('.rd-del');
-  if (p) { RADIO.cur = +p.dataset.i; S.radioSt = RADIO.cur; saveSettings(); renderRadioList(); }
+  if (p) { RADIO.cur = +p.dataset.i; S.radioId = RADIO.list[RADIO.cur].id; saveSettings(); renderRadioList(); }
   if (d) radioDelete(+d.dataset.id);
 });
 $('#rd-add').addEventListener('click', () => $('#songfile').click());

@@ -23,12 +23,9 @@ An open-world London game for the browser. It is built for an iPad (A16) with a 
   - Wheel positions are read straight from the Blender models, so every wheel sits in its arch.
 - **Spawn anything:** press **V** (or tap the car button under the settings gear) to spawn any vehicle in front of you in any paint colour. Only you can spawn the tank.
 - **Explosions:** cars catch fire and blow up when shot enough or hit by a tank shell, and the blast damages everything around them.
-- **Car radio:** Q and E or the mouse wheel change station in a vehicle, and the red radio button shows the full station list.
-  - OUTLAWS FM is an original phonk station generated live in the browser.
-  - **Add songs** lets you pick audio files, or screen recordings, from your iPad. They are kept on that device only and never uploaded.
-- **Police:**
-  - Wanted levels run from 1 to 5 stars. Police cars give chase, officers try to arrest you or shoot, and a helicopter joins at 4 stars.
-  - Each police car carries a crew of two. Once both officers are down the car is left empty and you can steal it, and reinforcements arrive in new cars after a delay.
+- **Car radio:** six built-in songs (Montagem Dominador, Montagem Fearless, Montagem Alquimia, Isolation, Montagem Ritmo Astral and Montagem Impacto) play as soon as you get in a vehicle.
+  - Q and E or the mouse wheel change song, and the red radio button shows the full list.
+  - There is also OUTLAWS FM, an original phonk station generated live, and **Add songs** to load more from your iPad.
 
 ## Controls
 
