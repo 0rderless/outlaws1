@@ -34,3 +34,6 @@ def stand(axis, sgn, a0, a1):
         acc.box(a0, a1, 0, 14, lo, hi, 'concrete', CLAD); acc.box(a0, a1, 10, 11, lo - .05, hi + .05, 'paint', BLUE)
         acc.box(a0, a1, 14, 14.5, min(edge - sgn * 1.5, back + sgn * .5), max(edge - sgn * 1.5, back + sgn * .5), 'metal', '#e4e7ea')
         acc.box(a0, a1, 13.2, 14, min(edge - sgn * 1.5, edge - sgn * 1.0), max(edge - sgn * 1.5, edge - sgn * 1.0), 'lampglass', '#fff7e6', ao=False)
+stand('x', -1, pz0, pz1); stand('x', 1, pz0, pz1); stand('z', -1, px0, px1); stand('z', 1, px0, px1)
+for (ax, az) in ((FX - D, z0), (x0, z1 - D)):                                                     # two closed corners (offices); the other two are open entrances
+    acc.box(ax, ax + D, 0, 12, az, az + D, 'concrete', CLAD); acc.box(ax - .05, ax + D + .05, 9, 10, az - .05, az + D + .05, 'paint', BLUE)
