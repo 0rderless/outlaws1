@@ -173,6 +173,8 @@ for wy in (yf, yr):
     cut = prim('cut', 'Black', lambda bm, wy=wy: [cyl(bm, (sx * (XI + W2 + .4) / 2, wy, R), R + .05, W2 + .4 - XI, 'X', 48) for sx in (-1, 1)])
     mo = body.modifiers.new('b', 'BOOLEAN'); mo.object = cut; mo.operation = 'DIFFERENCE'
     bpy.context.view_layer.objects.active = body; bpy.ops.object.modifier_apply(modifier=mo.name); bpy.data.objects.remove(cut)
+# headlamp recesses carved into the front corners (tools/blender/chiron_recess.py)
+exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chiron_recess.py')).read())
 # recessed glass, side intake
 bm = bmesh.new(); bm.from_mesh(me); mi = {nm: i for i, nm in enumerate(ORDER)}; bvh0 = BVHTree.FromBMesh(bm)
 for names, th, dp, rim in ((('Glass',), .012, -.014, 'Black'), (('Grille',), .015, -.07, 'Black'), (('Shoe',), .01, -.05, 'Black'), (('Lens',), .012, -.03, 'Black')):
@@ -278,18 +280,8 @@ def badge(bm):
     for v in g['verts']: v.co.z = z + (v.co.z - z) * .6
 prim('badge', 'Badge', badge)
 for sx in (-1, 1):
-    # quad-LED headlights: four round lamps in a slim housing on the fender corner, outer end slightly higher
-    hc = [(sx * (.495 + .3 * k / 12), .642 + .022 * (k / 12)) for k in range(13)]
-    for k in range(4):
-        x, z = hc[k * 4]
-        def led(bm, x=x, z=z):
-            p, nrm = on_front(x, z, .012); q = Vector((0, 0, 1)).rotation_difference(nrm)
-            bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=.033, radius2=.028, depth=.02, matrix=Matrix.Translation(p) @ q.to_matrix().to_4x4())
-        prim('led', 'LightF', led)
-        def ring_(bm, x=x, z=z):
-            p, nrm = on_front(x, z, .007); q = Vector((0, 0, 1)).rotation_difference(nrm)
-            bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=.042, radius2=.042, depth=.008, matrix=Matrix.Translation(p) @ q.to_matrix().to_4x4())
-        prim('ledring', 'Chrome', ring_)
+    # quad-LED headlights (tools/blender/chiron_lamps.py), run once per side with sx = -1 / 1
+    exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chiron_lamps.py')).read())
     # side: the C-line and the intake inside it
     def S(t, z, sx=sx, off=.006):
         loc, nrm, _, _ = bvh0.ray_cast(Vector((sx * 2, Y(t), z)), Vector((-sx, 0, 0)), 10)
@@ -338,10 +330,10 @@ bpy.context.view_layer.objects.active = body; bpy.ops.object.join()
 car = bpy.context.view_layer.objects.active; car.name = 'hyper'
 try: car.data.set_sharp_from_angle(angle=math.radians(55))
 except Exception: pass
-out = os.path.join(ROOT, 'assets', 'cars', 'hyper.glb')
+out = os.environ.get('CHIRON_OUT') or os.path.join(ROOT, 'assets', 'cars', 'hyper.glb')   # CHIRON_OUT: test build elsewhere, specs.json untouched
 bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', export_apply=True, export_yup=True)
 SPEC = os.path.join(ROOT, 'assets', 'cars', 'specs.json'); sp = json.load(open(SPEC)) if os.path.exists(SPEC) else {}
 tf, tr = FO / L, (FO + WB) / L
 sp['hyper'] = dict(L=L, W=W, H=H, r=R, wz=[round(tf, 4), round(tr, 4)], track=round(min(W2 * plan(tf), W2 * plan(tr)) - .32 * R - .06, 3))
-json.dump(sp, open(SPEC, 'w'), indent=1)
+if not os.environ.get('CHIRON_OUT'): json.dump(sp, open(SPEC, 'w'), indent=1)
 print('exported', out, sum(len(pl.vertices) - 2 for pl in car.data.polygons), 'tris', sp['hyper'])
