@@ -50,8 +50,8 @@ zmid = pchip([(0, .35), (.1, .36), (.9, .40), (1, .45)])
 zbul = pchip([(0, .42), (.18, .50), (.5, .52), (.75, .58), (1, .60)])
 zsh = pchip([(0, .655), (.07, .74), (.156, .80), (.26, .78), (.38, .80), (.60, .86), (.72, .93), (.85, .935), (.95, .90), (1, .855)])
 hz = pchip([(0, .615), (.04, .64), (.08, .71), (.12, .79)])
-zroof = pchip([(.10, .86), (.16, .92), (.23, 1.0), (.31, 1.09), (.39, 1.16), (.46, 1.205), (.50, 1.212), (.58, 1.20), (.67, 1.14), (.77, 1.04), (.86, .975)])
-wr = pchip([(.10, .90), (.20, .80), (.32, .70), (.42, .645), (.52, .60), (.66, .58), (.80, .53), (.88, .50)])
+zroof = pchip([(0.1, 0.84), (0.174, 0.95), (0.248, 1.08), (0.322, 1.18), (0.397, 1.212), (0.489, 1.2), (0.6, 1.14), (0.736, 1.04), (0.86, 0.975)])
+wr = pchip([(0.1, 0.88), (0.199, 0.75), (0.298, 0.645), (0.44, 0.6), (0.613, 0.58), (0.786, 0.53), (0.885, 0.5)])
 zc = pchip([(.78, 1.0), (.86, .975), (.94, .94), (1, .885)])
 def ring(t):
     """half section: 14 points from the bottom centre round to the top centre"""
@@ -71,7 +71,7 @@ def ring(t):
     for i in range(1, 7): upm += [((up[i - 1][0] + up[i][0]) / 2, (up[i - 1][1] + up[i][1]) / 2), up[i]]
     return low + upm
 # ------------------------------------------------------------------ the C (side two-tone): ellipse open to the front
-C_T0, C_A, C_Z0, C_B = .42, .21, .74, .46
+C_T0, C_A, C_Z0, C_B = 0.316, 0.26, .74, .46
 def c_rear(z): return C_T0 + C_A * math.sqrt(max(0.0, 1 - ((z - C_Z0) / C_B) ** 2)) if abs(z - C_Z0) < C_B else C_T0
 def zone(t): return 'A' if t < .11 else ('C' if t > .84 else 'B')
 def old(s): return s if s <= 4 else (5 if s <= 7 else (6 if s == 8 else 7 + (s - 9) // 2))
@@ -85,11 +85,11 @@ def classify(t, s, z):
     if t < .12: return 'Paint'                         # cowl: the windscreen starts where the surface turns up
     # cabin
     if s in (3, 4, 5, 6, 7):
-        if s == 7: return 'Black' if .15 < t < .55 else 'Paint'
+        if s == 7: return 'Black' if .15 < t < 0.477 else 'Paint'
         return 'Paint'
-    if s in (8, 9): return 'Glass' if .15 < t < .55 else 'Carbon'
-    if t < .41: return 'Glass'                        # windscreen
-    if .58 < t < .79 and s >= 11: return 'Glass'       # engine-bay window
+    if s in (8, 9): return 'Glass' if .15 < t < 0.477 else 'Carbon'
+    if t < 0.304: return 'Glass'                        # windscreen
+    if 0.514 < t < .79 and s >= 11: return 'Glass'       # engine-bay window
     return 'Carbon'                                    # roof
 # ------------------------------------------------------------------ build the cage
 ts = sorted(set([round(x, 4) for x in [0, .008, .02, .04, .065, .095, .13, .17, .21, .25, .29, .307, .313, .33, .36, .385, .41, .44, .47, .505, .53, .552, .558, .575,
@@ -290,7 +290,7 @@ for sx in (-1, 1):
         return loc + nrm * off, nrm
     def t_in(z): return C_T0 + (C_A - .03) * math.sqrt(max(0.0, 1 - ((z - C_Z0) / (C_B - .05)) ** 2))
     zz = [.44 + .44 * k / 10 for k in range(11)]
-    prim('sideintake', 'Shoe', lambda bm, S=S: decal(bm, [(.505, z) for z in zz[::-1]] + [(t_in(z), z) for z in zz], lambda t, z: S(t, z, off=.004), 2))
+    prim('sideintake', 'Shoe', lambda bm, S=S: decal(bm, [(0.421, z) for z in zz[::-1]] + [(t_in(z), z) for z in zz], lambda t, z: S(t, z, off=.004), 2))
     path = [(lerp(.17, C_T0, k / 6), zroof(lerp(.17, C_T0, k / 6)) - .1) for k in range(6)]
     for k in range(25): th = math.pi / 2 - k / 24 * math.pi; path.append((C_T0 + C_A * math.cos(th), min(zroof(C_T0) - .1, C_Z0 + C_B * math.sin(th))))
     path += [(lerp(C_T0, .30, k / 8), C_Z0 - C_B) for k in range(1, 9)]
@@ -308,11 +308,11 @@ for x in (-.085, .085):
     for z in (.23, .34): prim('pipe', 'Chrome', lambda bm, x=x, z=z: cyl(bm, (x, L / 2 - .08, z), .048, .2, 'Y', 18))
 prim('plate', 'PlateR', lambda bm: decal(bm, [(-.26, .44), (.26, .44), (.26, .55), (-.26, .55)], lambda x, z: on_rear(x, z, .008), 1))
 prim('wing', 'Carbon', lambda bm: cube(bm, (0, L / 2 - .3, zc(.93) + .018), (W - .6, .42, .022), rx=-.04))
-prim('fin', 'Carbon', lambda bm: tube(bm, [(0, .44 + .37 * k / 12) for k in range(13)], lambda x, t: on_top(x, t, .0), .03, .035))
+prim('fin', 'Carbon', lambda bm: tube(bm, [(0, 0.341 + 0.457 * k / 12) for k in range(13)], lambda x, t: on_top(x, t, .0), .03, .035))
 # interior seen through the glass
 prim('dash', 'Interior', lambda bm: cube(bm, (0, Y(.30), .72), (1.3, .3, .12)))
-prim('seats', 'Seat', lambda bm: [cube(bm, (sx * .36, Y(.465), .45), (.5, .5, .12)) or cube(bm, (sx * .36, Y(.51), .75), (.5, .12, .62), rx=-.3) for sx in (-1, 1)])
-prim('tub', 'Interior', lambda bm: cube(bm, (0, Y(.47), .42), (1.5, 1.05, .4)))
+prim('seats', 'Seat', lambda bm: [cube(bm, (sx * .36, Y(0.372), .45), (.5, .5, .12)) or cube(bm, (sx * .36, Y(0.427), .75), (.5, .12, .62), rx=-.3) for sx in (-1, 1)])
+prim('tub', 'Interior', lambda bm: cube(bm, (0, Y(0.378), .42), (1.5, 1.05, .4)))
 # arch liners
 def liner(bm, wy, sx):                                     # inside of the wheel well: arched roof facing the wheel + inner wall
     rr = R + .042; th = [math.radians(-12 + 204 * k / 24) for k in range(25)]; xo = sx * W2 * .985; xi = sx * (XI + .005)
