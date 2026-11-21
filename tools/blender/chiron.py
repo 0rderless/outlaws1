@@ -24,7 +24,7 @@ for a in (('Paint', '#ffffff', .25, .3), ('Carbon', '#0f1826', .3, .5), ('Glass'
 mat('Shoe', '#060708', .85); mat('Mesh', '#34383e', .45, .7); mat('Badge', '#b3101c', .3, .2); mat('LightF', '#f6f7fb', .05, 0, '#ffffff', 2.0); mat('LightR', '#a50d12', .15, 0, '#ff1a1a', 1.6)
 SC = bpy.context.scene.collection
 # ------------------------------------------------------------------ dimensions
-L, W, H, R = 4.544, 2.038, 1.212, .365; W2 = W / 2; FO, WB = .98, 2.711
+L, W, H, R = 4.544, 2.038, 1.212, .365; W2 = W / 2; FO, WB = .71, 2.711
 Y = lambda t: -L / 2 + t * L
 def pchip(keys):
     keys = sorted(keys); xs = [k[0] for k in keys]; ys = [k[1] for k in keys]; n = len(xs)
@@ -48,7 +48,7 @@ zs0 = pchip([(0, .17), (.06, .15), (.94, .17), (1, .27)])
 zs1 = pchip([(0, .25), (.06, .22), (.94, .25), (1, .35)])
 zmid = pchip([(0, .35), (.1, .36), (.9, .40), (1, .45)])
 zbul = pchip([(0, .42), (.18, .50), (.5, .52), (.75, .58), (1, .60)])
-zsh = pchip([(0, .655), (.08, .73), (.20, .80), (.30, .77), (.38, .80), (.60, .86), (.72, .93), (.85, .935), (.95, .90), (1, .855)])
+zsh = pchip([(0, .655), (.07, .74), (.156, .80), (.26, .78), (.38, .80), (.60, .86), (.72, .93), (.85, .935), (.95, .90), (1, .855)])
 hz = pchip([(0, .615), (.04, .63), (.12, .67), (.18, .72), (.235, .79), (.275, .85)])
 zroof = pchip([(.245, .84), (.305, .95), (.365, 1.08), (.425, 1.18), (.485, 1.212), (.56, 1.20), (.65, 1.14), (.76, 1.04), (.86, .975)])
 wr = pchip([(.245, .88), (.325, .75), (.405, .645), (.52, .60), (.66, .58), (.80, .53), (.88, .50)])
@@ -169,7 +169,7 @@ def cyl(bm, c, r, d, axis='X', seg=24, r2=None):
 def cube(bm, c, s, rx=0.0, rz=0.0):
     bmesh.ops.create_cube(bm, size=1, matrix=Matrix.Translation(Vector(c)) @ Matrix.Rotation(rz, 4, 'Z') @ Matrix.Rotation(rx, 4, 'X') @ Matrix.Diagonal((s[0], s[1], s[2], 1)))
 yf, yr = -L / 2 + FO, -L / 2 + FO + WB
-XI = .66                                                   # wheel wells only reach this far in: the hood and tunnel stay whole
+XI = .70                                                   # wheel wells only reach this far in: the hood and tunnel stay whole
 for wy in (yf, yr):
     cut = prim('cut', 'Black', lambda bm, wy=wy: [cyl(bm, (sx * (XI + W2 + .4) / 2, wy, R), R + .05, W2 + .4 - XI, 'X', 48) for sx in (-1, 1)])
     mo = body.modifiers.new('b', 'BOOLEAN'); mo.object = cut; mo.operation = 'DIFFERENCE'
