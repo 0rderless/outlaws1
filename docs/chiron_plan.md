@@ -9,7 +9,8 @@ What is wrong with the current model (measured against the side photo, scaled by
 Targets (x = metres from the nose, z = height):
 - Front axle at x 0.71, rear axle at x 3.42.
 - Nose top z 0.68 and wing peak z 0.82 over the front wheel.
-- Windscreen base x 1.27 / z 0.90, about 0.56 m behind the front axle.
+- Windscreen base **x 0.55 / z 0.79**, just behind the headlights. The user marked this on a screenshot, and it replaces the traced x 1.27.
+  The glass runs in one long rake up to the roof front at x 1.83 / z 1.18, so the bonnet is only a short strip in front of it.
 - Windscreen top x 1.83 / z 1.18; roof peak x 2.17 / z 1.212.
 - Roof falls to x 3.6 / z 0.99, then the tail top at about z 0.78, with a near-vertical tail.
 - C-line:
