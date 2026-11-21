@@ -49,9 +49,9 @@ zs1 = pchip([(0, .25), (.06, .22), (.94, .25), (1, .35)])
 zmid = pchip([(0, .35), (.1, .36), (.9, .40), (1, .45)])
 zbul = pchip([(0, .42), (.18, .50), (.5, .52), (.75, .58), (1, .60)])
 zsh = pchip([(0, .655), (.07, .74), (.156, .80), (.26, .78), (.38, .80), (.60, .86), (.72, .93), (.85, .935), (.95, .90), (1, .855)])
-hz = pchip([(0, .615), (.04, .63), (.12, .67), (.18, .72), (.235, .79), (.275, .85)])
-zroof = pchip([(.245, .84), (.305, .95), (.365, 1.08), (.425, 1.18), (.485, 1.212), (.56, 1.20), (.65, 1.14), (.76, 1.04), (.86, .975)])
-wr = pchip([(.245, .88), (.325, .75), (.405, .645), (.52, .60), (.66, .58), (.80, .53), (.88, .50)])
+hz = pchip([(0, .615), (.04, .64), (.08, .71), (.12, .79)])
+zroof = pchip([(.10, .86), (.16, .92), (.23, 1.0), (.31, 1.09), (.39, 1.16), (.46, 1.205), (.50, 1.212), (.58, 1.20), (.67, 1.14), (.77, 1.04), (.86, .975)])
+wr = pchip([(.10, .90), (.20, .80), (.32, .70), (.42, .645), (.52, .60), (.66, .58), (.80, .53), (.88, .50)])
 zc = pchip([(.78, 1.0), (.86, .975), (.94, .94), (1, .885)])
 def ring(t):
     """half section: 14 points from the bottom centre round to the top centre"""
@@ -59,13 +59,13 @@ def ring(t):
     zu = zbul(t)
     low = [(0, zb(t)), (w * .80, zb(t)), (w * .93, zs0(t)), (w * .97, zs1(t)), (w * .995, zmid(t)), (w, zu), (w * .998, lerp(zu, s6, .4)), (w * .993, lerp(zu, s6, .75)), (w * .985, s6)]
     h = hz(t); fz = s6 + .03
-    u = sm(0, .26, t); xc = w * lerp(.26, .62, u)
+    u = sm(0, .11, t); xc = w * lerp(.26, .62, u)
     A = [(w * .92, s6 + .03), (w * .82, fz + .03), (w * lerp(.71, .74, u), fz - .01), (min(xc + .06, w * .64), h - .035 * (1 - u) + .01 * u), (xc, h + .012), (xc * .5, h + .02), (0, h + .04)]
     zr = zroof(t); r_ = W2 * wr(t); zbelt = s6 + .04
     B = [(w * .90, s6 + .02), (w * .86, zbelt), (lerp(w * .86, r_, .5) - .02, (zbelt + zr - .08) / 2 + .02), (r_, zr - .08), (r_ * .72, zr - .03), (r_ * .36, zr - .008), (0, zr)]
     c_ = zc(t)
     Cc = [(w * .90, s6 + .02), (w * .80, s6 + .04), (w * .64, s6), (w * .46, c_ - .01), (w * .26, c_), (w * .08, c_ + .015), (0, c_ + .02)]
-    a = 1 - sm(.245, .315, t); c = sm(.80, .87, t); b = max(0.0, 1 - a - c)
+    a = 1 - sm(.07, .14, t); c = sm(.80, .87, t); b = max(0.0, 1 - a - c)
     up = [(A[i][0] * a + B[i][0] * b + Cc[i][0] * c, A[i][1] * a + B[i][1] * b + Cc[i][1] * c) for i in range(7)]
     upm = [up[0]]
     for i in range(1, 7): upm += [((up[i - 1][0] + up[i][0]) / 2, (up[i - 1][1] + up[i][1]) / 2), up[i]]
@@ -73,7 +73,7 @@ def ring(t):
 # ------------------------------------------------------------------ the C (side two-tone): ellipse open to the front
 C_T0, C_A, C_Z0, C_B = .42, .21, .74, .46
 def c_rear(z): return C_T0 + C_A * math.sqrt(max(0.0, 1 - ((z - C_Z0) / C_B) ** 2)) if abs(z - C_Z0) < C_B else C_T0
-def zone(t): return 'A' if t < .285 else ('C' if t > .84 else 'B')
+def zone(t): return 'A' if t < .11 else ('C' if t > .84 else 'B')
 def old(s): return s if s <= 4 else (5 if s <= 7 else (6 if s == 8 else 7 + (s - 9) // 2))
 def classify(t, s, z):
     zn = zone(t); s = old(s)
@@ -82,12 +82,12 @@ def classify(t, s, z):
     if zn == 'A':
         return 'Paint'
     if zn == 'C': return 'Paint'
-    if t < .29: return 'Paint'                         # cowl: the windscreen starts where the surface turns up
+    if t < .12: return 'Paint'                         # cowl: the windscreen starts where the surface turns up
     # cabin
     if s in (3, 4, 5, 6, 7):
-        if s == 7: return 'Black' if .305 < t < .55 else 'Paint'
+        if s == 7: return 'Black' if .15 < t < .55 else 'Paint'
         return 'Paint'
-    if s in (8, 9): return 'Glass' if .305 < t < .55 else 'Carbon'
+    if s in (8, 9): return 'Glass' if .15 < t < .55 else 'Carbon'
     if t < .41: return 'Glass'                        # windscreen
     if .58 < t < .79 and s >= 11: return 'Glass'       # engine-bay window
     return 'Carbon'                                    # roof
@@ -291,13 +291,13 @@ for sx in (-1, 1):
     def t_in(z): return C_T0 + (C_A - .03) * math.sqrt(max(0.0, 1 - ((z - C_Z0) / (C_B - .05)) ** 2))
     zz = [.44 + .44 * k / 10 for k in range(11)]
     prim('sideintake', 'Shoe', lambda bm, S=S: decal(bm, [(.505, z) for z in zz[::-1]] + [(t_in(z), z) for z in zz], lambda t, z: S(t, z, off=.004), 2))
-    path = [(lerp(.32, C_T0, k / 6), zroof(lerp(.32, C_T0, k / 6)) - .1) for k in range(6)]
+    path = [(lerp(.17, C_T0, k / 6), zroof(lerp(.17, C_T0, k / 6)) - .1) for k in range(6)]
     for k in range(25): th = math.pi / 2 - k / 24 * math.pi; path.append((C_T0 + C_A * math.cos(th), min(zroof(C_T0) - .1, C_Z0 + C_B * math.sin(th))))
     path += [(lerp(C_T0, .30, k / 8), C_Z0 - C_B) for k in range(1, 9)]
     prim('cline', 'Chrome', lambda bm, path=path, S=S: tube(bm, path, S, .045, .016))
     def mirror(bm, sx=sx):
-        bmesh.ops.create_uvsphere(bm, u_segments=14, v_segments=8, radius=1, matrix=Matrix.Translation(Vector((sx * (W2 * .84 + .1), Y(.315), zsh(.315) + .14))) @ Matrix.Diagonal((.1, .05, .05, 1)))
-        cube(bm, (sx * (W2 * .84 + .02), Y(.315) + .015, zsh(.315) + .1), (.1, .025, .02), rx=0, rz=0)
+        bmesh.ops.create_uvsphere(bm, u_segments=14, v_segments=8, radius=1, matrix=Matrix.Translation(Vector((sx * (W2 * .84 + .1), Y(.15), zsh(.15) + .14))) @ Matrix.Diagonal((.1, .05, .05, 1)))
+        cube(bm, (sx * (W2 * .84 + .02), Y(.15) + .015, zsh(.15) + .1), (.1, .025, .02), rx=0, rz=0)
     prim('mirror', 'Carbon', mirror)
 # rear: full-width light bar, diffuser, quad exhausts, plate, wing, roof fin
 prim('lightbar', 'LightR', lambda bm: tube(bm, [(-.95 + 1.9 * k / 24, .805) for k in range(25)], lambda x, z: on_rear(x, z, .006), .045, .02))
@@ -310,7 +310,7 @@ prim('plate', 'PlateR', lambda bm: decal(bm, [(-.26, .44), (.26, .44), (.26, .55
 prim('wing', 'Carbon', lambda bm: cube(bm, (0, L / 2 - .3, zc(.93) + .018), (W - .6, .42, .022), rx=-.04))
 prim('fin', 'Carbon', lambda bm: tube(bm, [(0, .44 + .37 * k / 12) for k in range(13)], lambda x, t: on_top(x, t, .0), .03, .035))
 # interior seen through the glass
-prim('dash', 'Interior', lambda bm: cube(bm, (0, Y(.375), .72), (1.3, .3, .12)))
+prim('dash', 'Interior', lambda bm: cube(bm, (0, Y(.30), .72), (1.3, .3, .12)))
 prim('seats', 'Seat', lambda bm: [cube(bm, (sx * .36, Y(.465), .45), (.5, .5, .12)) or cube(bm, (sx * .36, Y(.51), .75), (.5, .12, .62), rx=-.3) for sx in (-1, 1)])
 prim('tub', 'Interior', lambda bm: cube(bm, (0, Y(.47), .42), (1.5, 1.05, .4)))
 # arch liners
