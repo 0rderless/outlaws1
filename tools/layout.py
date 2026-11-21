@@ -210,12 +210,7 @@ lm("ST PAUL'S CATHEDRAL", 40, -165)
 col(10, 64, -177, -153, 24); col(38, 52, -186, -144, 24); col(59, 71.5, -172.5, -157.5, 15)
 for sz in (-1, 1): col(11, 18, -165 + sz * 10.5 - 3.4, -165 + sz * 10.5 + 3.4, 32); col(39.5, 50.5, -165 + sz * 21 - 5.6, -165 + sz * 21 + 5.6, 14)
 for _b in blocks:
-    if _b['kind'] == 'stadium':   # Stamford Bridge: stands, closed corners; the pitch is grass
-        x0, x1, z0, z1 = _b['x0'] + 3, _b['x1'] - 3, _b['z0'] + 3, _b['z1'] - 3; D = 12
-        greens.append([x0 + D, z0 + D, x1 - D, z1 - D])
-        col(x0, x0 + D, z0 + D, z1 - D, 15); col(x1 - D, x1, z0 + D, z1 - D, 15); col(x0 + D, x1 - D, z0, z0 + D, 15); col(x0 + D, x1 - D, z1 - D, z1, 15)
-        col(x1 - D, x1, z0, z0 + D, 12); col(x0, x0 + D, z1 - D, z1, 12)
-        lm('STAMFORD BRIDGE', (x0 + x1) / 2, (z0 + z1) / 2)
+    if _b['kind'] == 'stadium': exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'stadium_layout.py')).read())   # Stamford Bridge colliders, green, label
 lm('THE MALL', -80, -125, False); lm('SOUTH BANK', -40, 90, False); lm('THE CITY', 160, -230, False); lm("ST THOMAS' HOSPITAL", -200, 85); lm('SCOTLAND YARD', -40, -85); lm('CANARY WHARF', 360, -160); lm('HYDE PARK', -359, -245)
 # landmark gardens
 for x in range(-146, -101, 11):

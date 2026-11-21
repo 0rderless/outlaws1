@@ -196,7 +196,9 @@ def tower(lot, rnd, acc, gacc):
     i = 3 if tier else 0
     acc.box(x0 + i + (x1 - x0 - 2 * i) * .22, x1 - i - (x1 - x0 - 2 * i) * .22, h, h + 3.2, z0 + i + (z1 - z0 - 2 * i) * .22, z1 - i - (z1 - z0 - 2 * i) * .22, 'metal', '#5f6a73')
     if lot.get('crown'): acc.cyl((x0 + x1) / 2, (z0 + z1) / 2, .25, .1, h + 3.2, h + 14, 6, 'steel')
-for k, lot in enumerate(L['lots']): building(lot, random.Random(lot.get('seed', k)))
+STADIUM_ONLY = bool(os.environ.get('STADIUM_ONLY'))   # quick preview: streets + Stamford Bridge only, written to CITY_OUT
+for k, lot in enumerate(L['lots']):
+    if not STADIUM_ONLY: building(lot, random.Random(lot.get('seed', k)))
 print('buildings done', flush=True)
 # ---------------------------------------------------------------- ground, roads, kerbs
 nodes, edges = L['nodes'], L['edges']
@@ -355,7 +357,8 @@ for (i, j), (acc, gacc) in sorted(CHUNKS.items()):
     o = acc.to_object('C_%d_%d' % (i, j)); g = gacc.to_object('G_%d_%d' % (i, j), glass=True)
     n_tris += sum(len(f) - 2 for f in acc.F) + sum(len(f) - 2 for f in gacc.F)
 print('chunks', len(CHUNKS), 'triangles', n_tris, flush=True)
-export(os.path.join(ROOT, 'assets', 'city', 'city.glb'))
+export(os.environ.get('CITY_OUT') or os.path.join(ROOT, 'assets', 'city', 'city.glb'))
 print('exported city.glb', flush=True)
+if STADIUM_ONLY: sys.exit(0)
 for o in list(bpy.data.objects): bpy.data.objects.remove(o)
 EYE.to_object('EyeWheel'); export(os.path.join(ROOT, 'assets', 'city', 'eye.glb')); print('exported eye.glb')
