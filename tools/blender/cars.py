@@ -95,7 +95,7 @@ def heights(t):
     out[3] = lerp(F[3], out[3], sm(0, .10, t)); out[3] = lerp(Rr[3], out[3], sm(1, .9, t))
     return out
 def gh(t): return sm(p['cowl'] - .005, p['cowl'] + .02, t) * (1 - sm(p['deck'] - .02, p['deck'] + .005, t))
-def ring(t):
+def ring0(t):
     """half section (x>=0) from bottom centre to top centre: 11 points"""
     w = W2 * plan(t); z2, z3, z4, z5, z6 = heights(t); zt = max(top(t), z6 + .01); zu = z2 - .05
     g = gh(t); wr = W2 * wroof(t)
@@ -104,6 +104,25 @@ def ring(t):
     green = [(w - .065, z6 + .022), (wr, zt - .075), (wr * k9, zt - .016)]
     up = [(lerp(hood[i][0], green[i][0], g), lerp(hood[i][1], green[i][1], g)) for i in range(3)]
     return [(0, zu), (w * .80, zu), (w * .93, z2), (w * .962, z3), (w * .992, z4), (w, z5), (w - .03, z6)] + up + [(0, zt)]
+# wheel wells: cut per side from x=±XI outward only (the hood, tunnel and cabin between them stay whole). XI stays outside
+# the tyre's inner corner (front tyres steer up to .34 rad in the engine; tyre half-width .335r, corner radius ~.6r)
+TW = (p['FO'] / L, (p['FO'] + p['WB']) / L)
+track = min(W2 * plan(TW[0]), W2 * plan(TW[1])) - .32 * R - .055
+XI = (track - .60 * R - .03, track - .34 * R - .03)
+RC = R + .055                                              # arch cut radius about the axle
+ZF = 2 * R + .055 + .045                                   # bodywork over a well must stay above the cut top (+ skin)
+FEND = []                                                  # fender lift per axle for cage points 6, 7, 8 (only where too low)
+for a in (0, 1):
+    h = ring0(TW[a]); d6, d7 = max(0, ZF - h[6][1]), max(0, ZF + .012 - h[7][1]); d8 = max(0, ZF - h[8][1]) if h[8][0] > XI[a] - .1 else 0
+    FEND.append((d6, d7, d8))
+    if d6 + d7 + d8 > 0: print('fender lift axle', a, [round(v, 3) for v in (d6, d7, d8)])
+def ring(t):
+    h = ring0(t)
+    for a in (0, 1):
+        b = sm(1.6 * RC, .55 * RC, abs(t - TW[a]) * L); d6, d7, d8 = FEND[a]
+        if b <= 0 or d6 + d7 + d8 == 0: continue
+        h[5] = (h[5][0], h[5][1] + .4 * d6 * b); h[6] = (h[6][0], h[6][1] + d6 * b); h[7] = (h[7][0], h[7][1] + d7 * b); h[8] = (h[8][0], h[8][1] + d8 * b)
+    return h
 # ------------------------------------------------------------------ sections (with door shut-line pairs and pillar strips)
 G = .0028
 base = [0, .006, .015, .028, .045, .065, .09, .115] + [.14 + i * (.72 / 26) for i in range(27)] + [.885, .91, .935, .955, .972, .986, .994, 1]
@@ -257,8 +276,8 @@ def cyl(bm, c, r, depth, axis='X', seg=20, r2=None):
     rot = {'X': Matrix.Rotation(math.pi / 2, 4, 'Y'), 'Y': Matrix.Rotation(math.pi / 2, 4, 'X'), 'Z': Matrix.Identity(4)}[axis]
     bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r, radius2=r if r2 is None else r2, depth=depth, matrix=Matrix.Translation(Vector(c)) @ rot)
 yf, yr = -L / 2 + p['FO'], -L / 2 + p['FO'] + p['WB']
-for wy in (yf, yr):
-    cut = prim('cut', 'Black', lambda bm, wy=wy: cyl(bm, (0, wy, R), R + .055, W + .6, 'X', 40))
+for wy, xi in ((yf, XI[0]), (yr, XI[1])):
+    cut = prim('cut', 'Black', lambda bm, wy=wy, xi=xi: [cyl(bm, (sx * (xi + W2 + .4) / 2, wy, R), RC, W2 + .4 - xi, 'X', 40) for sx in (-1, 1)])
     mo = body.modifiers.new('b', 'BOOLEAN'); mo.object = cut; mo.operation = 'DIFFERENCE'
     bpy.context.view_layer.objects.active = body; bpy.ops.object.modifier_apply(modifier=mo.name); bpy.data.objects.remove(cut)
 # recess glass/lights/grilles/plates with insets (seals and bezels come from the inset rims)
@@ -282,8 +301,17 @@ if TYPE == 'police':   # Battenburg panels on the doors and wings (uv drives the
             v = me.vertices[me.loops[l].vertex_index].co; uv.data[l].uv = (v.y / .55, (v.z - .3) / .55)
 # ------------------------------------------------------------------ details
 zb = beltb(.5)
-for wy in (yf, yr):   # arch liners and lips
-    prim('liner', 'Under', lambda bm, wy=wy: cyl(bm, (0, wy, R + .03), R + .05, W - .12, 'X', 28))
+def liner(bm, wy, sx, xi):   # inside of the wheel well: arched roof facing the wheel + inner wall (open below, never encloses the tyre)
+    rr = R + .042; th = [math.radians(-12 + 204 * k / 24) for k in range(25)]; xo = sx * (W2 * plan((wy + L / 2) / L) - .015); xi = sx * (xi + .005)
+    A = [(wy + rr * math.cos(a), R + rr * math.sin(a)) for a in th]
+    o = [bm.verts.new((xo, y, z)) for y, z in A]; i = [bm.verts.new((xi, y, z)) for y, z in A]
+    for k in range(len(A) - 1):
+        f = bm.faces.new((o[k], o[k + 1], i[k + 1], i[k])); f.normal_update()
+        if f.normal.dot(Vector((xi, wy, R)) - f.calc_center_median()) < 0: f.normal_flip()
+    w = bm.faces.new(i + [bm.verts.new((xi, wy, R - .05))]); w.normal_update()
+    if w.normal.x * sx < 0: w.normal_flip()
+for wy, xi in ((yf, XI[0]), (yr, XI[1])):   # arch liners and lips
+    for sx in (-1, 1): prim('liner', 'Under', lambda bm, wy=wy, sx=sx, xi=xi: liner(bm, wy, sx, xi), smooth=False)
     def lip(bm, wy=wy):
         for sx in (-1, 1):
             segs = 18; vs = []
@@ -351,14 +379,19 @@ for sx in (-.28, .28):
 # interior: tub, dashboard, seats, steering wheel (right-hand drive: driver on -x)
 seat_y = cw_y + (1.15 if TYPE != 'sports' else 1.0); rseat_y = seat_y + .88
 fl = rk + .14
-prim('tub', 'Interior', lambda bm: cube(bm, (0, (cw_y + dk_y) / 2, (fl + zb - .06) / 2), (W - .26, dk_y - cw_y - .08, zb - .06 - fl)))
+def tub(bm):   # cabin tub, narrowed where it passes a wheel well so nothing pokes into the open wells
+    ys = sorted(set([cw_y + .04, dk_y - .04] + [v for wy in (yf, yr) for v in (wy - RC - .02, wy + RC + .02) if cw_y + .04 < v < dk_y - .04]))
+    for y0, y1 in zip(ys[:-1], ys[1:]):
+        wd = min([W - .26] + [2 * (XI[a] - .01) for a, wy in enumerate((yf, yr)) if abs((y0 + y1) / 2 - wy) < RC + .02])
+        cube(bm, (0, (y0 + y1) / 2, (fl + zb - .06) / 2), (wd, y1 - y0, zb - .06 - fl))
+prim('tub', 'Interior', tub)
 prim('dash', 'Interior', lambda bm: cube(bm, (0, cw_y + .32, zb - .1), (W - .3, .44, .17), bev=.05))
 def seat(bm, x, y, w=.52):
     room = top(min(1, max(0, (y + .36 + L / 2) / L))) - .08 - fl   # keep headrests under the roof line
     k = min(1.0, room / 1.1)
     cube(bm, (x, y, fl + .26 * k), (w, .52, .12), bev=.04); cube(bm, (x, y + .3, fl + .62 * k), (w, .12, .62 * k), rx=-.22, bev=.04)
     if k > .8: cube(bm, (x, y + .36, fl + 1.0 * k), (.26, .1, .18), rx=-.22, bev=.04)
-prim('seats', 'Seat', lambda bm: (seat(bm, -.38, seat_y), seat(bm, .38, seat_y), (seat(bm, 0, rseat_y, W - .4) if TYPE != 'sports' else None)))
+prim('seats', 'Seat', lambda bm: (seat(bm, -.38, seat_y), seat(bm, .38, seat_y), (seat(bm, 0, rseat_y, min(W - .4, 2 * XI[1] - .04) if rseat_y + .45 > yr - RC else W - .4) if TYPE != 'sports' else None)))
 def wheel_(bm):
     seg, rr, rt = 24, .19, .02; vs = []
     for i in range(seg):
@@ -409,8 +442,7 @@ except Exception: pass
 bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', export_apply=True, export_yup=True)
 import json, os
 SPEC = os.path.join(os.path.dirname(OUT), 'specs.json'); sp = json.load(open(SPEC)) if os.path.exists(SPEC) else {}
-tf, tr = p['FO'] / L, (p['FO'] + p['WB']) / L
-track = min(W2 * plan(tf), W2 * plan(tr)) - .32 * R - .055
+tf, tr = TW
 sp[TYPE] = dict(L=L, W=W, H=H, r=R, wz=[round(tf, 4), round(tr, 4)], track=round(track, 3))
 json.dump(sp, open(SPEC, 'w'), indent=1)
 print('exported', OUT, len(car.data.polygons), 'faces', sum(len(pl.vertices) - 2 for pl in car.data.polygons), 'tris')
