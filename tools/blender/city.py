@@ -209,28 +209,70 @@ def pave(x0, x1, z0, z1, layer='pavement', tint=WHITE, h=KERB):
             acc.quad((ax0, h, az1), (ax1, h, az1), (ax1, h, az0), (ax0, h, az0), layer, tint, ao=False)
     acc = O((x0 + x1) / 2, (z0 + z1) / 2)
     acc.box(x0, x1, 0, h, z0, z1, 'kerb', '#c9c6bf', top=False)
-for b in L['blocks']: pave(b['x0'], b['x1'], b['z0'], b['z1'])
+RG = L['ring']; RING, RIN, ROUT, PROM = RG['r'], RG['rin'], RG['rout'], RG['prom']
+def clip_poly(poly, x0, x1, z0, z1):
+    for ax, v, sg in ((0, x0, 1), (0, x1, -1), (1, z0, 1), (1, z1, -1)):
+        out = []
+        for i in range(len(poly)):
+            P, Q = poly[i], poly[(i + 1) % len(poly)]; ip, iq = (P[ax] - v) * sg >= 0, (Q[ax] - v) * sg >= 0
+            if iq:
+                if not ip: t = (v - P[ax]) / (Q[ax] - P[ax]); out.append((P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t))
+                out.append(Q)
+            elif ip: t = (v - P[ax]) / (Q[ax] - P[ax]); out.append((P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t))
+        poly = out
+        if not poly: break
+    return poly
+def fan(acc, poly, y, layer, tint=WHITE):
+    cx = sum(p[0] for p in poly) / len(poly); cz = sum(p[1] for p in poly) / len(poly)
+    for i in range(len(poly)):
+        a, b = poly[i], poly[(i + 1) % len(poly)]
+        acc.face([(cx, y, cz), (b[0], y, b[1]), (a[0], y, a[1])], layer, tint, ao=False)
+def chunks_of(poly):
+    xs = [p[0] for p in poly]; zs = [p[1] for p in poly]
+    for xa in range(int(math.floor((min(xs) + HALF + 200) / CH)), int(math.floor((max(xs) - 1e-6 + HALF + 200) / CH)) + 1):
+        for za in range(int(math.floor((min(zs) + HALF + 200) / CH)), int(math.floor((max(zs) - 1e-6 + HALF + 200) / CH)) + 1):
+            x0, z0 = xa * CH - HALF - 200, za * CH - HALF - 200
+            part = clip_poly(poly, x0, x0 + CH, z0, z0 + CH)
+            if len(part) >= 3: yield part
+def pave_poly(poly, layer='pavement', h=KERB):
+    for part in chunks_of(poly):
+        cx = sum(p[0] for p in part) / len(part); cz = sum(p[1] for p in part) / len(part); fan(O(cx, cz), part, h, layer)
+    for i in range(len(poly)):   # kerb faces
+        a, b = poly[i], poly[(i + 1) % len(poly)]
+        O((a[0] + b[0]) / 2, (a[1] + b[1]) / 2).quad((b[0], 0, b[1]), (a[0], 0, a[1]), (a[0], h, a[1]), (b[0], h, b[1]), 'kerb', '#c9c6bf', ao=False)
+for b in L['blocks']:
+    if b.get('poly'): pave_poly([tuple(p) for p in b['poly']])
+    elif not b.get('sub'): pave(b['x0'], b['x1'], b['z0'], b['z1'])
 for zn in L['zones']: pave(zn['x0'], zn['x1'], zn['z0'] if zn['z0'] > 0 else zn['z0'], zn['z1'] if zn['z1'] < 0 else zn['z1'])
 for s in (-1, 1):
-    x0 = -HALF
-    for bx in [br['x'] for br in L['bridges']] + [HALF + 20]:
-        hw = next((br['hw'] for br in L['bridges'] if br['x'] == bx), 0)
-        g0 = bx - hw if bx < HALF else HALF
+    brs = sorted(L['bridges'], key=lambda br: br['x'])
+    for a, b in zip(brs[:-1], brs[1:]):
+        x0, g0 = a['x'] + a['hw'], b['x'] - b['hw']
         if g0 > x0: pave(x0, g0, RIVER if s > 0 else -RIVER - 8, RIVER + 8 if s > 0 else -RIVER)
-        x0 = bx + hw
 for g in L['greens']:
     x0, z0, x1, z1 = g; acc = O((x0 + x1) / 2, (z0 + z1) / 2)
     acc.box(x0, x1, KERB, KERB + .1, z0, z1, 'grass', toplayer='grass', ao=False)
 for g in L['gravel']:
     x0, z0, x1, z1 = g; O((x0 + x1) / 2, (z0 + z1) / 2).box(x0, x1, KERB, KERB + .12, z0, z1, 'gravel', ao=False)
-# asphalt base per chunk (under everything)
-for xa in range(int((-HALF - 40 + HALF + 200) // CH), int((HALF + 40 + HALF + 200) // CH) + 1):
-    for za in range(int((-HALF - 40 + HALF + 200) // CH), int((HALF + 40 + HALF + 200) // CH) + 1):
-        ax0, ax1 = xa * CH - HALF - 200, (xa + 1) * CH - HALF - 200; az0, az1 = za * CH - HALF - 200, (za + 1) * CH - HALF - 200
-        if ax1 < -HALF - 40 or ax0 > HALF + 40 or az1 < -HALF - 40 or az0 > HALF + 40: continue
-        acc = O((ax0 + ax1) / 2, (az0 + az1) / 2)
-        for zz0, zz1 in ((az0, min(az1, -RIVER)), (max(az0, RIVER), az1)):
-            if zz1 > zz0: acc.quad((ax0, -.02, zz1), (ax1, -.02, zz1), (ax1, -.02, zz0), (ax0, -.02, zz0), 'asphalt', ao=False)
+# asphalt base: the island disc, minus the river
+ISLAND = [(PROM * math.cos(a), PROM * math.sin(a)) for a in [i / 240 * 2 * math.pi for i in range(240)]]
+for half_ in (clip_poly(ISLAND, -9999, 9999, -9999, -RIVER), clip_poly(ISLAND, -9999, 9999, RIVER, 9999)):
+    for part in chunks_of(half_):
+        cx = sum(p[0] for p in part) / len(part); cz = sum(p[1] for p in part) / len(part); fan(O(cx, cz), part, -.02, 'asphalt')
+# seafront: promenade between the ring road and the sea wall, wall face down to the water, parapet on top
+NS = 240
+for k in range(NS):
+    a0, a1 = k / NS * 2 * math.pi, (k + 1) / NS * 2 * math.pi
+    p = lambda r, a: (r * math.cos(a), r * math.sin(a))
+    if min(abs(PROM * math.sin(a0)), abs(PROM * math.sin(a1))) < RIVER + .5: continue
+    (x0, z0), (x1, z1) = p(ROUT, a0), p(ROUT, a1); (X0, Z0), (X1, Z1) = p(PROM, a0), p(PROM, a1); (Y0, W0), (Y1, W1) = p(PROM - .6, a0), p(PROM - .6, a1)
+    acc = O((x0 + X1) / 2, (z0 + Z1) / 2)
+    acc.quad((x0, KERB, z0), (x1, KERB, z1), (X1, KERB, Z1), (X0, KERB, Z0), 'pavement', ao=False)
+    acc.quad((x1, 0, z1), (x0, 0, z0), (x0, KERB, z0), (x1, KERB, z1), 'kerb', '#c9c6bf', ao=False)
+    acc.quad((X1, -4, Z1), (X0, -4, Z0), (X0, KERB, Z0), (X1, KERB, Z1), 'stone', '#b5ab95')
+    acc.quad((Y0, 1.05, W0), (Y1, 1.05, W1), (X1, 1.05, Z1), (X0, 1.05, Z0), 'stone', '#ddd5c2', ao=False)
+    acc.quad((X1, KERB, Z1), (X0, KERB, Z0), (X0, 1.05, Z0), (X1, 1.05, Z1), 'stone', '#cfc6b0')
+    acc.quad((Y0, KERB, W0), (Y1, KERB, W1), (Y1, 1.05, W1), (Y0, 1.05, W0), 'stone', '#cfc6b0')
 def strip(p0, p1, hw, layer, tint=WHITE, y=0.0, v0=0.0):
     (ax, az), (bx, bz) = p0, p1; dx, dz = bx - ax, bz - az; Ln = math.hypot(dx, dz)
     if Ln < .01: return v0
@@ -256,17 +298,20 @@ for e in edges:
             cx, cz = a['x'] + ux * t, a['z'] + uz * t
             strip((cx - ux * 1.3, cz - uz * 1.3), (cx + ux * 1.3, cz + uz * 1.3), hw - .6, 'zebra', y=.012)
 for i, n in enumerate(nodes):
-    if n['deg'] > 2:
-        hw = RWR if (abs(n['x']) == L['ring']['x'] or abs(n['z']) == L['ring']['z']) else RW
+    if n['deg'] > 2 and n.get('r'):   # ring junctions: a round patch of asphalt
+        fan(O(n['x'], n['z']), [(n['x'] + (RG['hw'] + .8) * math.cos(a), n['z'] + (RG['hw'] + .8) * math.sin(a)) for a in [k / 16 * 2 * math.pi for k in range(16)]], .004, 'asphalt')
+    elif n['deg'] > 2:
+        hw = RW
         O(n['x'], n['z']).quad((n['x'] - hw, 0, n['z'] + hw), (n['x'] + hw, 0, n['z'] + hw), (n['x'] + hw, 0, n['z'] - hw), (n['x'] - hw, 0, n['z'] - hw), 'asphalt', ao=False)
 print('streets done', flush=True)
 # ---------------------------------------------------------------- river walls & bridges
+XW = math.sqrt(PROM ** 2 - RIVER ** 2)
 for s in (-1, 1):
-    for x in range(-HALF - 20, HALF + 20, 40):
+    for x in range(-int(XW), int(XW), 40):
         acc = O(x + 20, s * RIVER)
         z = s * RIVER; acc.quad(*([(x, -4, z), (x + 40, -4, z), (x + 40, KERB, z), (x, KERB, z)] if s < 0 else [(x + 40, -4, z), (x, -4, z), (x, KERB, z), (x + 40, KERB, z)]), 'stone', '#b5ab95')
-    x0 = -HALF - 20
-    for br in L['bridges'] + [dict(x=HALF + 40, hw=0)]:
+    x0 = -XW
+    for br in L['bridges'] + [dict(x=XW + .4, hw=0)]:
         g0 = br['x'] - br['hw'] - .4
         if g0 > x0:
             for xx in range(int(x0), int(g0), 20):

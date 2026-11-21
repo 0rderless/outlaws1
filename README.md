@@ -4,15 +4,18 @@ A small open-world London game for the browser. It is built for an iPad (A16) wi
 
 **Play:** https://0rderless.github.io/outlaws1/ (turn on Pages under Settings → Pages → Deploy from branch → `main` / root).
 
-- **City:** about 920 m square, modelled in Blender, with the river Thames and five bridges (Vauxhall, Westminster, Waterloo, Tower Bridge and Docklands). A ring road with rounded corners runs round the edge, so you can drive loops without stopping.
-  - Landmarks: Big Ben and the Houses of Parliament, Buckingham Palace and the Mall, the London Eye (it turns), Tower Bridge, the Tower of London, the Shard, the Gherkin, the Walkie-Talkie, the Cheesegrater, and the Canary Wharf towers.
+- **City:** a round island about 950 m across, modelled in Blender. A wide ring road runs all the way round the waterfront and every outer street joins it, so there are no dead ends or invisible walls. You just keep looping. Beyond the ring road are a seafront promenade, a sea wall and open water.
+  - The Thames runs through the middle under five bridges.
+  - Landmarks: Big Ben (Elizabeth Tower, with gilded clock faces, belfry and spire) and the Houses of Parliament, Buckingham Palace and the Mall, the London Eye (it turns), Tower Bridge, the Tower of London, the Shard, the Gherkin, the Walkie-Talkie, the Cheesegrater, and the Canary Wharf towers.
+  - Tower Bridge has Gothic towers on river piers, blue-and-white high-level walkways and suspension chains.
   - Streets: brick and stone terraces with real window openings, shopfronts, awnings, mansard roofs and chimneys, glass towers, kerbs and pavements, zebra crossings with Belisha beacons, Victorian lamp posts, trees, phone boxes, post boxes, bus shelters and billboards.
 - **Day and night:**
   - The sun rises in the east and sets in the west, followed by a moonlit sky full of stars. After dark the office and shop windows light up, the street lamps cast pools of light, and your vehicle has headlights.
   - In Settings you can keep the full cycle (12 to 96 minutes per day) or fix the time at dawn, midday, sunset or night. T skips ahead one hour.
 - **Characters:** realistic MakeHuman (CC0) bodies rigged to a Mixamo skeleton and animated with motion-captured idle, walk and run clips. The hero wears a black tank top, black shorts and a backwards cap.
-- **Vehicles:**
-  - Saloon, hatchback, SUV, sports car, black cab, a Met police car with Battenburg livery, and a red double-decker bus.
+- **Vehicles (Blender):**
+  - The cars are lofted bodies with recessed tinted glass and rubber seals, door shut lines, projector headlamps with LED strips, wrap-round tail lights, grilles, mirrors and handles. Seats, dashboards and right-hand-drive steering wheels are visible through the glass. They ride on ten-spoke alloys.
+  - Models: saloon, hatchback, SUV, sports car, the London black cab (round lamps, chrome grille, TAXI sign), a Met police estate in Battenburg livery, and a classic Routemaster double-decker. The Routemaster has a cream band, both decks of windows with seats inside, a radiator grille and round lamps, and the open rear platform with its pole.
   - A sport motorbike that leans into corners and has a riding pose. Crash it hard and you go over the handlebars.
   - AI traffic drives on the left.
 - **Police:**
@@ -61,7 +64,8 @@ A small open-world London game for the browser. It is built for an iPad (A16) wi
   1. `python3 tools/layout.py` lays out the roads, blocks, building lots, props and colliders, and writes `assets/city/layout.json`.
   2. `python3 tools/textures.py` paints the 26 surface textures into `assets/city/layers.jpg`.
   3. `python3 -I tools/blender/city.py` and `python3 -I tools/blender/props.py` build the city, landmarks and props in Blender (bpy). They export `city.glb`, `eye.glb` and `props.glb`.
+   - The vehicle scripts are separate: `python3 -I tools/blender/cars.py <type> assets/cars/<type>.glb` builds each car, and `bus.py`, `bike.py` and `wheel.py` build the Routemaster, the motorbike and the wheels.
   4. Compress each with `gltf-transform quantize --quantize-color 8` followed by `gltf-transform meshopt`, which gives the `*.min.glb` files the game loads.
-  5. `people.py`, `cars.py`, `bike.py`, `wheel.py`, `guns.py` and `anims.py` build the characters, vehicles, guns and the animation file. The character scripts expect the MakeHuman base mesh and the MPFB2 Mixamo rig and weights from the makehumancommunity GitHub repos.
+  5. `people.py`, `guns.py` and `anims.py` build the characters, guns and the animation file. The character scripts expect the MakeHuman base mesh and the MPFB2 Mixamo rig and weights from the makehumancommunity GitHub repos.
 
 Credits: MakeHuman base mesh and rig (CC0, makehumancommunity), and the Mixamo X Bot animations and brick texture from the three.js examples.

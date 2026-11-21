@@ -18,35 +18,73 @@ def pyramid(acc, cx, cz, half, y0, y1, layer, tint, top=0.0):
         a, b = c[i], c[(i + 1) % 4]; ta, tb = t[i], t[(i + 1) % 4]
         if top > 0: acc.quad((b[0], y0, b[1]), (a[0], y0, a[1]), (ta[0], y1, ta[1]), (tb[0], y1, tb[1]), layer, tint)
         else: acc.face([(b[0], y0, b[1]), (a[0], y0, a[1]), (cx, y1, cz)], layer, tint)
+def lancet(gacc, axis, fixed, sgn, u, y0, y1, w, lit=.45):
+    """pointed Gothic window pane on a wall plane (axis 'z': wall at z=fixed spanning x; 'x': wall at x=fixed spanning z)"""
+    ys = y1 - w * .7; o = .05 * sgn; hw = w / 2
+    if axis == 'z': pts = [(u - hw, y0, fixed + o), (u + hw, y0, fixed + o), (u + hw, ys, fixed + o), (u, y1, fixed + o), (u - hw, ys, fixed + o)]
+    else: pts = [(fixed + o, y0, u + hw), (fixed + o, y0, u - hw), (fixed + o, ys, u - hw), (fixed + o, y1, u), (fixed + o, ys, u + hw)]
+    if sgn < 0: pts = pts[::-1]
+    glass_face(gacc, pts, LR, lit)
+def faces4(cx, cz, h):
+    """(axis, fixed, sgn, centre-u) for the four walls of a square of half-size h"""
+    return [('z', cz + h, 1, cx), ('z', cz - h, -1, cx), ('x', cx + h, 1, cz), ('x', cx - h, -1, cz)]
+def wall_box(acc, axis, fixed, sgn, u0, u1, y0, y1, depth, layer, tint, ao=True):
+    """a thin box standing proud of a wall (ribs, frames)"""
+    if axis == 'z': acc.box(u0, u1, y0, y1, min(fixed, fixed + sgn * depth), max(fixed, fixed + sgn * depth), layer, tint, ao=ao)
+    else: acc.box(min(fixed, fixed + sgn * depth), max(fixed, fixed + sgn * depth), y0, y1, u0, u1, layer, tint, ao=ao)
 def big_ben(x, z):
+    """Elizabeth Tower: honey limestone shaft with Gothic panelling, gilded clock stage, belfry, iron spire with lantern"""
     acc, g = O(x, z), Gl(x, z)
-    acc.cbox(x, 0, z, 8, 45, 8, 'sandstone', SAND)
-    for ox, oz in ((-4, -4), (4, -4), (-4, 4), (4, 4)): acc.cbox(x + ox, 0, z + oz, 1.2, 46.5, 1.2, 'sandstone', SAND_D)
-    for y in range(8, 44, 6): acc.cbox(x, y, z, 8.35, .4, 8.35, 'sandstone', SAND_D, ao=False)
-    for s in (-1.8, 1.8):
-        for y in range(9, 44, 6):
-            for fx, fz, ax in ((0, 4, 'z'), (0, -4, 'z'), (4, 0, 'x'), (-4, 0, 'x')):
-                if ax == 'z': facade_windows(g, 'z', z + fz, x + s - .45, x + s + .45, y + .6, y + 4.6, 1, .8, 1 if fz > 0 else -1, .5)
-                else: facade_windows(g, 'x', x + fx, z + s - .45, z + s + .45, y + .6, y + 4.6, 1, .8, 1 if fx > 0 else -1, .5)
-    acc.cbox(x, 45, z, 9, 10, 9, 'sandstone', SAND)
-    cy = 50.2; r = 3.6; o = 4.56
-    for nx, nz in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-        if nz: pts = [(x - r, cy - r, z + nz * o), (x + r, cy - r, z + nz * o), (x + r, cy + r, z + nz * o), (x - r, cy + r, z + nz * o)]
-        else: pts = [(x + nx * o, cy - r, z + r), (x + nx * o, cy - r, z - r), (x + nx * o, cy + r, z - r), (x + nx * o, cy + r, z + r)]
-        if nz < 0 or nx < 0: pts = [pts[1], pts[0], pts[3], pts[2]]
-        acc.quad(*pts, 'clock', uvs=[(0, 0), (1, 0), (1, 1), (0, 1)], ao=False)
-    acc.cbox(x, 55, z, 9.5, .9, 9.5, 'gold', GOLD, ao=False)
-    acc.cbox(x, 55.9, z, 7.4, 5.2, 7.4, 'sandstone', SAND_D)
-    for k in (-2.2, 0, 2.2):
-        for fx, fz in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            if fz: acc.cbox(x + k, 56.6, z + fz * 3.72, 1.1, 3.6, .12, 'metal', '#24292e')
-            else: acc.cbox(x + fx * 3.72, 56.6, z + k, .12, 3.6, 1.1, 'metal', '#24292e')
-    for ox, oz in ((-3.6, -3.6), (3.6, -3.6), (-3.6, 3.6), (3.6, 3.6)):
-        acc.cbox(x + ox, 55.9, z + oz, 1, 7, 1, 'sandstone', SAND); acc.cone(x + ox, z + oz, .75, 62.9, 66.5, 4, 'gold', GOLD, ry=math.pi / 4)
-    pyramid(acc, x, z, 3.9, 61.1, 73.5, 'slate', SLATE_D, top=.35)
-    for k in range(4):
-        a = k * math.pi / 2; acc.cone(x + math.cos(a) * 2.6, z + math.sin(a) * 2.6, .4, 63.5, 66.2, 4, 'gold', GOLD)
-    acc.cyl(x, z, .35, .05, 73.5, 79, 6, 'gold', GOLD)
+    S1, S2, IRON = '#e7d3a0', '#c9ad72', '#2c3536'
+    acc.cbox(x, 0, z, 10.6, 3, 10.6, 'sandstone', S2)
+    acc.cbox(x, 3, z, 9, 48.4, 9, 'sandstone', S1)
+    for ox, oz in ((-4.5, -4.5), (4.5, -4.5), (-4.5, 4.5), (4.5, 4.5)): acc.cyl(x + ox, z + oz, .8, .8, 0, 52.2, 8, 'sandstone', S2, ry=math.pi / 8)
+    for ax, fx, sg, u in faces4(x, z, 4.5):
+        for k in (-1.5, 1.5): wall_box(acc, ax, fx, sg, u + k - .18, u + k + .18, 3, 51.4, .3, 'sandstone', S2)
+        for y0 in (5.5, 13.5, 21.5, 29.5, 37.5):
+            for b in (-3, 0, 3): lancet(g, ax, fx, sg, u + b, y0, y0 + 5.6, 1.05, .35)
+        for b in (-3, 0, 3): lancet(g, ax, fx, sg, u + b, 44.5, 49.6, 1.2, .5)
+    for y in (3, 11, 19, 27, 35, 43, 51): acc.cbox(x, y, z, 9.6, .5, 9.6, 'sandstone', S2, ao=False)
+    # clock stage with a gilded frame round each dial
+    acc.cbox(x, 51.4, z, 10.8, 10, 10.8, 'sandstone', S1)
+    cy, r, o = 56.4, 3.75, 5.42
+    for ax, fx, sg, u in faces4(x, z, 5.4):
+        wall_box(acc, ax, fx, sg, u - 4.35, u + 4.35, cy + 3.9, cy + 4.5, .16, 'gold', GOLD, ao=False); wall_box(acc, ax, fx, sg, u - 4.35, u + 4.35, cy - 4.5, cy - 3.9, .16, 'gold', GOLD, ao=False)
+        wall_box(acc, ax, fx, sg, u - 4.35, u - 3.9, cy - 4.5, cy + 4.5, .16, 'gold', GOLD, ao=False); wall_box(acc, ax, fx, sg, u + 3.9, u + 4.35, cy - 4.5, cy + 4.5, .16, 'gold', GOLD, ao=False)
+        for cu, cv in ((-3.4, 3.4), (3.4, 3.4), (-3.4, -3.4), (3.4, -3.4)): wall_box(acc, ax, fx, sg, u + cu - .45, u + cu + .45, cy + cv - .45, cy + cv + .45, .1, 'gold', GOLD, ao=False)
+        f = fx + sg * .19
+        if ax == 'z': pts = [(u - r, cy - r, f), (u + r, cy - r, f), (u + r, cy + r, f), (u - r, cy + r, f)]
+        else: pts = [(f, cy - r, u + r), (f, cy - r, u - r), (f, cy + r, u - r), (f, cy + r, u + r)]
+        if sg < 0: pts = [pts[1], pts[0], pts[3], pts[2]]
+        acc.quad(*pts, 'clock', uvs=[(0, 0), (1, 0), (1, 1), (0, 1)] if sg > 0 else [(1, 0), (0, 0), (0, 1), (1, 1)], ao=False)
+        wall_box(acc, ax, fx, sg, u - 4.8, u + 4.8, 61, 61.4, .25, 'sandstone', S2, ao=False)
+    acc.cbox(x, 61.4, z, 11.4, .9, 11.4, 'gold', GOLD, ao=False)                       # gallery
+    # belfry: three tall pointed openings a side, dark inside, gilt tracery
+    acc.cbox(x, 62.3, z, 9.4, 6.6, 9.4, 'sandstone', S1)
+    for ax, fx, sg, u in faces4(x, z, 4.7):
+        for b in (-2.6, 0, 2.6):
+            ys = 67.3; w = 1.7; o = .03 * sg
+            if ax == 'z': pts = [(u + b - w / 2, 63.2, fx + o), (u + b + w / 2, 63.2, fx + o), (u + b + w / 2, ys, fx + o), (u + b, 68.4, fx + o), (u + b - w / 2, ys, fx + o)]
+            else: pts = [(fx + o, 63.2, u + b + w / 2), (fx + o, 63.2, u + b - w / 2), (fx + o, ys, u + b - w / 2), (fx + o, 68.4, u + b), (fx + o, ys, u + b + w / 2)]
+            if sg < 0: pts = pts[::-1]
+            acc.face(pts, 'metal', '#15191b', ao=False)
+            wall_box(acc, ax, fx, sg, u + b - .07, u + b + .07, 63.2, 68.3, .08, 'gold', GOLD, ao=False)
+    for ox, oz in ((-4.7, -4.7), (4.7, -4.7), (-4.7, 4.7), (4.7, 4.7)):
+        acc.cyl(x + ox, z + oz, .75, .75, 61.4, 70.5, 8, 'sandstone', S2, ry=math.pi / 8); acc.cone(x + ox, z + oz, .8, 70.5, 75, 8, 'gold', GOLD)
+    for ax, fx, sg, u in faces4(x, z, 4.7):
+        for b in (-1.4, 1.4): pass
+    # iron spire with gilt ribs, four dormers, the Ayrton light lantern and a gilt finial
+    pyramid(acc, x, z, 4.8, 69, 81, 'slate', IRON, top=1.7)
+    for ox, oz in ((-1, -1), (1, -1), (-1, 1), (1, 1)): acc.beam((x + ox * 4.75, 69, z + oz * 4.75), (x + ox * 1.75, 81, z + oz * 1.75), .22, 'gold', GOLD)
+    for ax, fx, sg, u in faces4(x, z, 3.6):
+        if ax == 'z': acc.cbox(u, 72, fx + sg * .4, 1.6, 2.6, 1.4, 'slate', IRON)
+        else: acc.cbox(fx + sg * .4, 72, u, 1.4, 2.6, 1.6, 'slate', IRON)
+        if ax == 'z': acc.cone(u, fx + sg * .4, .95, 74.6, 76.4, 4, 'gold', GOLD, ry=math.pi / 4)
+        else: acc.cone(fx + sg * .4, u, .95, 74.6, 76.4, 4, 'gold', GOLD, ry=math.pi / 4)
+    acc.cbox(x, 81, z, 3.6, 3.2, 3.6, 'gold', GOLD)
+    for ax, fx, sg, u in faces4(x, z, 1.8): lancet(g, ax, fx, sg, u, 81.5, 83.8, 1.6, 1.0)
+    pyramid(acc, x, z, 1.9, 84.2, 89, 'slate', IRON, top=.25)
+    acc.cyl(x, z, .3, .12, 89, 92.5, 8, 'gold', GOLD); acc.sphere(x, 92.7, z, .35, 'gold', GOLD, 8, 5); acc.cbox(x, 93, z, .12, 1.4, .12, 'gold', GOLD); acc.cbox(x, 93.8, z, .7, .12, .12, 'gold', GOLD)
 def parliament():
     x0, x1, z0, z1 = -139, -99, -62, -39; acc, g = O(-119, -50), Gl(-119, -50)
     acc.box(x0, x1, 0, 17, z0, z1, 'sandstone', SAND)
@@ -125,30 +163,80 @@ def london_eye():
     for s in (-1, 1): acc.beam((hx + s * 9, KERB, hz + 15), (hx, hy, hz + 1.6), 1.0, 'paint', '#e8ecef')
     acc.beam((hx, KERB, hz + 15), (hx, hy, hz + 1.6), .7, 'paint', '#e8ecef')
 def tower_bridge():
-    x, S = 160, '#d8c7a0'; B, Wt = '#4f8bc9', '#e8eef4'
-    for tz in (-15, 15):
-        acc, g = O(x, tz), Gl(x, tz)
-        acc.cbox(x, -3.2, tz, 30, 3.2, 14, 'stone', '#9c8f78')
+    """Two Gothic towers on river piers (the road runs through pointed arches), corner turrets with spires,
+    blue-and-white high-level walkways, and the blue suspension chains of the side spans down to shore towers."""
+    X = 160; ST, GR, BL, WT = '#d6ceba', '#a99f8c', '#3f86cf', '#f2f5f7'; SL = '#3a4446'
+    HW = 8.3; SPR, APX, TOP = 9.5, 14.5, 26.0       # arch: half span, springing, apex; main block top
+    for TZ in (-16, 16):
+        acc, g = O(X, TZ), Gl(X, TZ)
+        acc.cbox(X, -3.6, TZ, 27, 3.6, 12.5, 'stone', GR)                                     # pier
+        for sx in (-1, 1): acc.cyl(X + sx * 13.5, TZ, 6.25, 6.25, -3.6, 0, 12, 'stone', GR)   # cutwaters
+        for sx in (-1, 1):                                                                     # the two side masses
+            acc.box(X + sx * HW if sx > 0 else X - 12, X + 12 if sx > 0 else X - HW, 0, TOP, TZ - 5.5, TZ + 5.5, 'stone', ST)
+        acc.box(X - HW, X + HW, APX, TOP, TZ - 5.5, TZ + 5.5, 'stone', ST, bottom=False, sides=(0, 0, 1, 1))
+        n = 12; arc = lambda u: SPR + (APX - SPR) * (1 - abs(u)) ** .55
+        for k in range(n):                                                                     # spandrels and the arch soffit
+            u0, u1 = -1 + 2 * k / n, -1 + 2 * (k + 1) / n; x0, x1 = X + u0 * HW, X + u1 * HW; y0, y1 = arc(u0), arc(u1)
+            for zf, sg in ((TZ + 5.5, 1), (TZ - 5.5, -1)):
+                pts = [(x0, y0, zf), (x1, y1, zf), (x1, APX, zf), (x0, APX, zf)]
+                acc.face(pts if sg > 0 else pts[::-1], 'stone', ST)
+            acc.quad((x1, y1, TZ - 5.5), (x0, y0, TZ - 5.5), (x0, y0, TZ + 5.5), (x1, y1, TZ + 5.5), 'stone', '#bdb4a0')
+        for zf, sg in ((TZ + 5.5, 1), (TZ - 5.5, -1)):                                         # stone voussoir band round the arch
+            for k in range(n):
+                u0, u1 = -1 + 2 * k / n, -1 + 2 * (k + 1) / n
+                a, b = (X + u0 * HW, arc(u0)), (X + u1 * HW, arc(u1))
+                acc.beam((a[0], a[1] + .35, zf + sg * .12), (b[0], b[1] + .35, zf + sg * .12), .7, 'sandstone', '#c4b89c')
+        for y in (TOP, 9.5): acc.cbox(X, y, TZ, 24.6, .6, 11.6, 'sandstone', '#c4b89c', ao=False)
+        acc.cbox(X, TOP + .6, TZ, 22.4, 6.6, 9.6, 'stone', ST)                                 # top storey
+        acc.cbox(X, TOP + 7.2, TZ, 23, .5, 10.2, 'sandstone', '#c4b89c', ao=False)
+        for ox in (-10.4, 10.4):                                                              # octagonal corner turrets with spires
+            for oz in (-4.4, 4.4):
+                acc.cyl(X + ox, TZ + oz, 1.8, 1.8, 0, 35.2, 8, 'stone', ST, ry=math.pi / 8)
+                for y in (TOP, 31.5): acc.cyl(X + ox, TZ + oz, 1.95, 1.95, y, y + .45, 8, 'sandstone', '#c4b89c', ry=math.pi / 8)
+                acc.cone(X + ox, TZ + oz, 1.9, 35.2, 41.8, 8, 'slate', SL, ry=math.pi / 8); acc.sphere(X + ox, 42.1, TZ + oz, .32, 'gold', GOLD, 6, 4)
+        acc.cbox(X, TOP + 7.7, TZ, 12, 3.6, 6.6, 'stone', ST)                                  # lantern storey and the central spire
+        pyramid(acc, X, TZ, 4.4, TOP + 11.3, TOP + 21, 'slate', SL, top=.3); acc.cyl(X, TZ, .22, .06, TOP + 21, TOP + 24, 6, 'gold', GOLD)
+        for sx in (-1, 1): pyramid(acc, X + sx * 4.6, TZ, 1.4, TOP + 11.3, TOP + 15.5, 'slate', SL)
+        for ax, fx, sg, u in (('x', X + 12, 1, TZ), ('x', X - 12, -1, TZ)):                     # lancet windows
+            for y0 in (11, 17.5, 28): 
+                for b in (-2.6, 0, 2.6): lancet(g, ax, fx, sg, u + b, y0, y0 + 4.3, 1.1, .3)
+        for zf, sg in ((TZ + 5.5, 1), (TZ - 5.5, -1)):
+            for sx in (-1, 1):
+                for y0 in (11, 17.5): lancet(g, 'z', zf, sg, X + sx * 10.15, y0, y0 + 4.3, 1.1, .3)
+            for b in (-3, 0, 3): lancet(g, 'z', zf, sg, X + b, 17, 23.6, 1.3, .3)
+            for b in (-6, -2, 2, 6): lancet(g, 'z', zf - sg * 1.0, sg, X + b, 28, 32.2, 1.1, .3)
+    # high-level walkways: lattice girders between the tower tops, one each side
+    acc = O(X, 0)
+    for sx in (-1, 1):
+        wx = X + sx * 6.2; z0, z1 = -10.5, 10.5
+        acc.box(wx - 1.7, wx + 1.7, TOP + 2.2, TOP + 2.9, z0, z1, 'paint', BL)                 # bottom chord + floor
+        acc.box(wx - 1.75, wx + 1.75, TOP + 6.4, TOP + 7.1, z0, z1, 'paint', BL)                # top chord
+        acc.box(wx - 1.55, wx + 1.55, TOP + 7.1, TOP + 7.5, z0, z1, 'paint', '#2c5f9e')         # roof
+        for sd in (-1, 1):
+            ox = wx + sd * 1.7
+            for k in range(13):
+                zz = z0 + k * (z1 - z0) / 12
+                acc.box(ox - .1, ox + .1, TOP + 2.9, TOP + 6.4, zz - .14, zz + .14, 'paint', WT)
+                if k < 12:
+                    zn = z0 + (k + 1) * (z1 - z0) / 12
+                    acc.beam((ox, TOP + 2.9, zz), (ox, TOP + 6.4, zn), .12, 'paint', BL); acc.beam((ox, TOP + 6.4, zz), (ox, TOP + 2.9, zn), .12, 'paint', BL)
+            acc.box(ox - .08, ox + .08, TOP + 4.5, TOP + 4.75, z0, z1, 'paint', WT)
+    # side spans: suspension chains from the tower tops down to the shore towers, with hangers to the deck
+    for sz in (-1, 1):
         for sx in (-1, 1):
-            lx = x + sx * 11
-            acc.cbox(lx, 0, tz, 6, 34, 11, 'stone', S)
-            for y in (6, 18, 30): acc.cbox(lx, y, tz, 6.3, .45, 11.3, 'stone', '#c6b58a', ao=False)
-            for ox in (-2.4, 2.4):
-                for oz in (-4.6, 4.6):
-                    acc.cbox(lx + ox, 34, tz + oz, 1.5, 4, 1.5, 'stone', S); pyramid(acc, lx + ox, tz + oz, .8, 38, 42, 'slate', SLATE_D); acc.sphere(lx + ox, 42.2, tz + oz, .2, 'gold', GOLD, 6, 4)
-            pyramid(acc, lx, tz, 2.9, 34, 41.5, 'slate', SLATE_D); acc.cyl(lx, tz, .12, .05, 41.5, 44, 6, 'gold', GOLD)
-            for y in (8, 16, 24):
-                facade_windows(g, 'z', tz + 5.5, lx - .8, lx + .8, y, y + 3.2, 1, 1, 1, .3); facade_windows(g, 'z', tz - 5.5, lx - .8, lx + .8, y, y + 3.2, 1, 1, -1, .3)
-        acc.cbox(x, 17, tz, 16, 17, 11, 'stone', S); acc.cbox(x, 15.8, tz, 16.2, 1.2, 11.2, 'stone', '#bba77f')
-    acc = O(x, 0)
-    for sx in (-1, 1):
-        acc.cbox(x + sx * 5, 27.5, 0, 3, 3.6, 19, 'metal', B); acc.cbox(x + sx * 5, 31.1, 0, 3.3, .4, 19.2, 'paint', Wt); acc.cbox(x + sx * 5, 27.2, 0, 3.3, .3, 19.2, 'paint', Wt)
-        for zz in range(-8, 8, 2): acc.beam((x + sx * 6.6, 27.6, zz), (x + sx * 6.6, 31, zz + 2), .14, 'paint', Wt)
-    for sx in (-1, 1):
-        for sz in (-1, 1):
-            acc.beam((x + sx * 9.6, 26, sz * 20.5), (x + sx * 9.6, 1, sz * 36), .7, 'metal', B); acc.beam((x + sx * 9.6, 26, sz * 9.5), (x + sx * 9.6, 9, 0), .6, 'metal', B)
-            for k in range(1, 6):
-                t = k / 6; acc.beam((x + sx * 9.6, 26 - 25 * t, sz * (20.5 + 15.5 * t)), (x + sx * 9.2, 0, sz * (20.5 + 15.5 * t)), .08, 'metal', B)
+            cx = X + sx * (HW + 1.3); pts = []
+            for k in range(13):
+                t = k / 12; zz = sz * (21.5 + 12 * t); yy = (TOP + 3) * (1 - t) + 10.5 * t - 6.5 * math.sin(math.pi * t) * .9
+                pts.append((cx, yy, zz))
+            for a, b in zip(pts[:-1], pts[1:]):
+                acc.beam(a, b, .75, 'paint', BL); acc.beam((a[0], a[1] + .42, a[2]), (b[0], b[1] + .42, b[2]), .16, 'paint', WT)
+            for a in pts[1:-1]: acc.beam((a[0], a[1], a[2]), (a[0], .9, a[2]), .07, 'paint', WT)
+            acc.beam(pts[-1], (cx, 1.0, sz * 41.5), .65, 'paint', BL)
+        # shore towers at the river bank
+        for sx in (-1, 1):
+            tx = X + sx * (HW + 1.6); tz = sz * 33.5; a2 = O(tx, tz)
+            a2.cbox(tx, 0, tz, 3.2, 11, 3.2, 'stone', ST); a2.cbox(tx, 11, tz, 3.6, .4, 3.6, 'sandstone', '#c4b89c', ao=False)
+            pyramid(a2, tx, tz, 1.8, 11.4, 15.5, 'slate', SL); a2.sphere(tx, 15.7, tz, .25, 'gold', GOLD, 6, 4)
 def tower_of_london():
     cx, cz, S, Wl = 200, -85, '#e6dfcf', '#cdc1a3'; acc, g = O(cx, cz), Gl(cx, cz)
     def seg(x0, x1, z0, z1):
