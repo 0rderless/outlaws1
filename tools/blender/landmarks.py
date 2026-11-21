@@ -298,11 +298,14 @@ def stadium(b):
     """Stamford Bridge, built from five scripts (each exec'd here with these shared names):
     stadium_bowl.py (pitch, seating tiers, roofs, floodlights - the inside), stadium_facade.py (outside walls/cladding of the
     four stands and the corners), stadium_entrance.py (main entrance, gates, turnstiles), stadium_plaza.py (forecourt, club
-    shop/hotel, statue, flags, lamps around it). Colliders and walk-through gaps live in tools/stadium_layout.py."""
+    shop/hotel, statue, flags, lamps around it). Colliders and walk-through gaps live in tools/stadium_layout.py.
+    Shared plan: the bowl spans x0..FX (east stand back wall at x = FX), forecourt FX..x1, main entrance z EZ0..EZ1."""
     x0, x1, z0, z1 = b['x0'] + 3, b['x1'] - 3, b['z0'] + 3, b['z1'] - 3; D = 12
-    px0, px1, pz0, pz1 = x0 + D, x1 - D, z0 + D, z1 - D; cx, cz = (px0 + px1) / 2, (pz0 + pz1) / 2
+    FX = x1 - 14                       # main (east) facade line: the 14 m between it and the street is the forecourt
+    px0, px1, pz0, pz1 = x0 + D, FX - D, z0 + D, z1 - D; cx, cz = (px0 + px1) / 2, (pz0 + pz1) / 2
+    EZ0, EZ1 = cz - 3, cz + 3          # main entrance passage through the east stand (walkable, FX -> px1)
     acc = O(cx, cz); BLUE, WHITE_, CLAD = '#1b3f9e', '#e9eef4', '#cfd3d8'
-    SG = dict(globals()); SG.update(b=b, x0=x0, x1=x1, z0=z0, z1=z1, D=D, px0=px0, px1=px1, pz0=pz0, pz1=pz1, cx=cx, cz=cz, acc=acc, BLUE=BLUE, WHITE_=WHITE_, CLAD=CLAD)
+    SG = dict(globals()); SG.update(b=b, x0=x0, x1=x1, z0=z0, z1=z1, D=D, FX=FX, EZ0=EZ0, EZ1=EZ1, px0=px0, px1=px1, pz0=pz0, pz1=pz1, cx=cx, cz=cz, acc=acc, BLUE=BLUE, WHITE_=WHITE_, CLAD=CLAD)
     for part in ('stadium_bowl.py', 'stadium_facade.py', 'stadium_entrance.py', 'stadium_plaza.py'):
         exec(open(os.path.join(HERE, part)).read(), SG)
 def tower_of_london():
