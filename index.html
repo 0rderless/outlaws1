@@ -40,8 +40,19 @@ body{position:fixed;inset:0;-webkit-user-select:none;user-select:none;-webkit-to
 #hp{width:112px;height:7px;border-radius:4px;background:rgba(15,20,26,.55);border:1px solid rgba(245,241,232,.35);overflow:hidden}
 #hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c0281e,#ef4b3a);transition:width .15s}
 #kos{font:700 14px/1.2 var(--ui);color:var(--brass);letter-spacing:.06em}
+#hudbtns{display:flex;flex-direction:column;align-items:center}
 #gear{pointer-events:auto;width:40px;height:40px;border-radius:12px;border:2px solid var(--hair);background:var(--slate);color:var(--ink);display:grid;place-items:center;padding:0}
 #gear svg{width:22px;height:22px}
+#helpbtn{pointer-events:auto;width:40px;height:40px;border-radius:12px;border:2px solid var(--hair);background:var(--slate);color:var(--ink);font:700 20px/1 var(--ui);padding:0;margin-top:8px}
+#help{position:absolute;left:10px;top:200px;width:286px;padding:10px 12px;border-radius:14px;background:rgba(15,20,26,.8);border:1px solid var(--hair);font:600 12.5px/1.25 var(--ui);color:var(--ink);pointer-events:none;transition:opacity .4s}
+#help h3{margin:0 0 6px;font:400 18px/1 var(--display);letter-spacing:.04em;color:var(--brass)}
+#help .k,#keys{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;align-items:baseline}
+#help b{font:700 12px var(--ui);letter-spacing:.05em;color:var(--brass);text-align:right;white-space:nowrap}
+#help small{display:block;margin-top:8px;color:rgba(245,241,232,.7);font-weight:500}
+#prompt{position:absolute;left:50%;bottom:56px;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(15,20,26,.78);border:1px solid var(--hair);font:600 16px/1 var(--ui);white-space:nowrap;text-shadow:none}
+kbd{display:inline-block;min-width:22px;padding:4px 6px;margin:0 6px 0 0;border-radius:6px;background:var(--ink);color:var(--night);font:700 13px/1 var(--ui);text-align:center}
+#prompt kbd+span+kbd{margin-left:14px}
+body.freemouse #c{cursor:none}
 #toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);font:400 30px/1 var(--display);letter-spacing:.05em;color:var(--ink);text-shadow:0 3px 8px rgba(0,0,0,.6);opacity:0;transition:opacity .4s;white-space:nowrap}
 #toast small{display:block;font:600 13px/1.4 var(--ui);letter-spacing:.2em;color:var(--brass);text-align:center}
 #speed{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font:400 26px/1 var(--display);text-shadow:0 2px 6px rgba(0,0,0,.6)}
@@ -49,7 +60,9 @@ body{position:fixed;inset:0;-webkit-user-select:none;user-select:none;-webkit-to
 #xhair{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.4);opacity:.85}
 #xhair::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff}
 #xhair.lock{border-color:#ff3b30}
-#keys{margin:16px auto 0;display:grid;grid-template-columns:auto auto;gap:4px 18px;font:600 14px/1.35 var(--ui);text-align:left;max-width:420px;color:rgba(245,241,232,.86)}
+#keys{margin:16px auto 0;display:grid;grid-template-columns:auto auto;gap:4px 18px;font:600 14px/1.35 var(--ui);text-align:left;max-width:440px;color:rgba(245,241,232,.86)}
+#title .title{max-width:800px}
+@media (min-width:900px){#keys{grid-template-columns:auto 1fr auto 1fr;max-width:760px;gap:5px 14px}}
 #keys b{font:700 13px var(--ui);letter-spacing:.06em;color:var(--brass);text-align:right}
 #hit{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;opacity:0;transition:opacity .12s}
 #msg{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:4}
@@ -97,9 +110,11 @@ body{position:fixed;inset:0;-webkit-user-select:none;user-select:none;-webkit-to
       <div id="kos">0 TAKEDOWNS</div>
       <div id="clock">16:12</div>
     </div>
-    <button id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <div id="hudbtns"><button id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button id="helpbtn" aria-label="Show controls">?</button></div>
   </div>
   <div id="toast"></div>
+  <div id="help" hidden></div>
+  <div id="prompt" hidden></div>
   <div id="speed" hidden>0<small>MPH</small></div>
   <div id="xhair"></div>
   <svg id="hit" viewBox="0 0 26 26" stroke="#fff" stroke-width="2.5"><path d="M3 3l6 6M23 3l-6 6M3 23l6-6M23 23l-6-6"/></svg>
@@ -136,6 +151,7 @@ body{position:fixed;inset:0;-webkit-user-select:none;user-select:none;-webkit-to
     <p class="sub" id="devline"></p>
     <div class="row"><label for="s-tod">Time of day</label><select id="s-tod"><option value="cycle">Day and night cycle</option><option value="dawn">Always dawn</option><option value="day">Always midday</option><option value="sunset">Always sunset</option><option value="night">Always night</option></select></div>
     <div class="row"><label for="s-daylen">Length of a day</label><select id="s-daylen"><option value="12">12 minutes</option><option value="24">24 minutes</option><option value="48">48 minutes</option><option value="96">96 minutes</option></select></div>
+    <div class="row"><label for="s-mouse">Mouse</label><select id="s-mouse"><option value="auto">Automatic</option><option value="free">Free pointer (iPad)</option><option value="lock">Capture the mouse (computer)</option></select></div>
     <div class="row"><label for="s-q">Graphics</label><select id="s-q"><option value="low">Low (fastest, no shadows)</option><option value="med">Medium</option><option value="high">High (sharpest)</option></select></div>
     <div class="row"><label for="s-sens">Camera speed</label><input type="range" id="s-sens" min="0.4" max="2.2" step="0.1"></div>
     <div class="row"><label for="s-size">Button size</label><input type="range" id="s-size" min="0.7" max="1.4" step="0.05"></div>
@@ -145,6 +161,7 @@ body{position:fixed;inset:0;-webkit-user-select:none;user-select:none;-webkit-to
     <div class="row"><label for="s-touch">On-screen touch buttons</label><input type="checkbox" id="s-touch"></div>
     <div class="btns">
       <button class="btn" id="resume">Resume</button>
+      <button class="btn ghost" id="showhelp">Controls</button>
       <button class="btn ghost" id="move">Move buttons</button>
       <button class="btn ghost" id="reset">Reset buttons</button>
     </div>
@@ -186,7 +203,7 @@ const LAYOUTS = {
   pad:   { joy: [.13, .76, 178], fire: [.895, .75, 118], jump: [.79, .89, 82], enter: [.905, .54, 84], weapon: [.79, .63, 76], brake: [.69, .89, 84] },
   desk:  { joy: [.12, .74, 150], fire: [.89, .72, 100], jump: [.79, .87, 70], enter: [.9, .5, 72], weapon: [.79, .59, 64], brake: [.69, .87, 72] }
 };
-let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24 };
+let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24, mouse: 'auto' };
 try { const s = JSON.parse(localStorage.getItem('ls-settings3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
 const saveSettings = () => { try { localStorage.setItem('ls-settings3', JSON.stringify(S)); } catch (e) {} };
 
@@ -1181,14 +1198,39 @@ let thudT = 0; const sfxThud = v => { if (performance.now() - thudT < 200) retur
 
 let hornT = 0; function sfxHorn() { if (!AC || performance.now() - hornT < 400) return; hornT = performance.now(); const t = AC.currentTime; for (const f of [415, 523]) { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + .45); o.connect(g); g.connect(master); o.start(t); o.stop(t + .5); } }
 /* ================= input (keyboard + mouse first, optional touch) ================= */
-const inp = { jx: 0, jy: 0, fire: false, brake: false, aim: false, mfire: false, maim: false };
+const inp = { jx: 0, jy: 0, fire: false, brake: false, aim: false, mfire: false, maim: false, mx: .5, my: .5, mIn: false, sticky: false, rDown: -9 };
 const keys = new Set();
 const locked = () => document.pointerLockElement === canvas;
-function lockPointer() { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+// iPad Safari has no Pointer Lock: there the pointer stays free, the crosshair follows it, and the screen edges (or arrow keys) turn the camera
+let freeMouse = false;
+function decideMouse() {
+  freeMouse = S.mouse === 'free' || (S.mouse !== 'lock' && (isIPad || isIPhone || !canvas.requestPointerLock));
+  document.body.classList.toggle('freemouse', freeMouse); if (freeMouse && locked()) document.exitPointerLock();
+  const k = $('#keys'); if (k) k.innerHTML = helpRows();
+}
+function lockPointer() { if (freeMouse) return; try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+document.addEventListener('pointerlockerror', () => { if (S.mouse === 'auto' && !freeMouse) { freeMouse = true; decideMouse(); showHelp(true); } });
+function helpRows() {
+  const R = freeMouse
+    ? [['MOUSE', 'Aim: the crosshair follows it'], ['SCREEN EDGE', 'Pointer at the side turns the camera'], ['ARROW KEYS', 'Turn and tilt the camera']]
+    : [['MOUSE', 'Look and aim'], ['ARROW KEYS', 'Turn and tilt the camera']];
+  R.push(['WASD', 'Walk, drive, ride'], ['LEFT CLICK', 'Shoot (snaps to nearest person)'], ['RIGHT CLICK', 'Lock on to a target'], ['SHIFT', 'Sprint · handbrake'],
+    ['SPACE', 'Jump · handbrake'], ['F', 'Get in or out, on or off'], ['1 2 3 · WHEEL', 'Pistol · SMG · shotgun'], ['C', 'Walk / jog'], ['H', 'Horn'], ['T', 'Skip ahead an hour'], ['P · ESC', 'Pause and settings'], ['/', 'Show or hide controls']);
+  return R.map(([k, v]) => `<b>${k}</b><span>${v}</span>`).join('');
+}
+let helpT = 0;
+function showHelp(on, secs) {
+  const h = $('#help'); h.innerHTML = '<h3>Controls</h3><div class="k">' + helpRows() + '</div><small>Press / or the ? button to hide</small>'; h.hidden = !on; helpT = on && secs ? secs : 0;
+  const m = $('#map').getBoundingClientRect(), hu = $('#hud').getBoundingClientRect(); h.style.top = Math.round(m.bottom - hu.top + 10) + 'px';
+}
+addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; inp.mx = clamp(e.clientX / innerWidth, 0, 1); inp.my = clamp(e.clientY / innerHeight, 0, 1); inp.mIn = true; });
+document.documentElement.addEventListener('mouseleave', () => { inp.mIn = false; });
+canvas.addEventListener('contextmenu', () => { if (freeMouse && running && !paused && now - inp.rDown > .25) inp.sticky = !inp.sticky; }); // iPad right click may only arrive as a context menu
 addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
   if (e.repeat) return; keys.add(e.code); if (!running || player.busy > 0) return;
-  if (e.code === 'Escape') { if ($('#settings').hidden) openSettings(); else resumeGame(); return; }
+  if (e.code === 'Escape' || e.code === 'KeyP') { if ($('#settings').hidden) openSettings(); else resumeGame(); return; }
+  if (e.code === 'Slash' || e.code === 'IntlBackslash') { showHelp($('#help').hidden); return; }
   if (paused) return;
   if (e.code === 'Space' && player.mode === 'foot') doJump();
   if (e.code === 'KeyF' || e.code === 'Enter') doEnter();
@@ -1203,12 +1245,12 @@ addEventListener('blur', () => { keys.clear(); inp.mfire = inp.maim = false; });
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch' || !running || paused) return;
   if (!locked()) lockPointer();
-  if (e.button === 0) inp.mfire = true; if (e.button === 2) inp.maim = true;
+  if (e.button === 0) inp.mfire = true; if (e.button === 2) { inp.maim = true; inp.rDown = now; inp.sticky = false; }
 });
 addEventListener('pointerup', e => { if (e.pointerType === 'touch') return; if (e.button === 0) inp.mfire = false; if (e.button === 2) inp.maim = false; });
 addEventListener('mousemove', e => {
   if (!running || paused) return;
-  if (!locked() && $('#title').hidden === false) return;
+  if (!locked()) return;
   const k = .0024 * S.sens; cam.yaw -= e.movementX * k; cam.pitch = clamp(cam.pitch + e.movementY * k * (S.inv ? -1 : 1), -.35, 1.2); cam.lastDrag = now;
 });
 addEventListener('wheel', e => { if (running && !paused) setWeapon(player.weapon + (e.deltaY > 0 ? 1 : 2)); }, { passive: true });
@@ -1289,12 +1331,12 @@ function doEnter() {
   }
   if (c.police && c.crew) for (const q of c.crew) if (q.state === 'board') q.state = 'cop';
   c.ai = false; c.driver = false; c.wps = null; c.mode = 'player'; c.vx = Math.sin(c.yaw) * c.speed; c.vz = Math.cos(c.yaw) * c.speed;
-  c.fallen = false; player.mode = 'car'; player.car = c; $('#speed').hidden = false; cam.dist = c.bike ? 5.6 : c.type === 'bus' ? 15 : 8.5; refreshButtons();
+  c.fallen = false; enterT = now; player.mode = 'car'; player.car = c; $('#speed').hidden = false; cam.dist = c.bike ? 5.6 : c.type === 'bus' ? 15 : 8.5; refreshButtons();
 }
 function refreshButtons() { const car = player.mode === 'car'; ctls.jump.hidden = car; ctls.brake.hidden = !car; ctls.enter.textContent = car ? 'Exit' : 'Ride'; }
 const _cf = new THREE.Vector3();
-function findTarget() { // right-click lock-on: nearest visible person within a cone in front of the camera
-  camera.getWorldDirection(_cf); const cand = [];
+function findTarget() { // right-click lock-on: nearest visible person within a cone in front of the camera (or the pointer)
+  if (freeMouse && inp.mIn) { pointerRay(); _cf.copy(_rdir); } else camera.getWorldDirection(_cf); const cand = [];
   for (const p of peds) {
     if (!p.active || p.state === 'dead' || p.state === 'off' || p.state === 'board') continue;
     const dx = p.x - player.x, dz = p.z - player.z, d = Math.hypot(dx, dz); if (d > 48 || d < .5) continue;
@@ -1305,11 +1347,24 @@ function findTarget() { // right-click lock-on: nearest visible person within a 
   for (let i = 0; i < Math.min(6, cand.length); i++) if (los(player.x, player.z, cand[i][1].x, cand[i][1].z, 1.3)) return cand[i][1];
   return null;
 }
-const _ro = new THREE.Vector3(), _rdir = new THREE.Vector3();
+const _ro = new THREE.Vector3(), _rdir = new THREE.Vector3(), _sp = new THREE.Vector3();
+function pointerRay() { _ro.copy(camera.position); _rdir.set(inp.mx * 2 - 1, 1 - inp.my * 2, .5).unproject(camera).sub(_ro).normalize(); }
+function nearPointer() { // aim assist: the living person drawn closest to the crosshair
+  const cx = freeMouse && inp.mIn ? inp.mx * 2 - 1 : 0, cy = freeMouse && inp.mIn ? 1 - inp.my * 2 : 0; let best = null, bd = .22;
+  for (const p of peds) {
+    if (!p.active || p.state === 'dead' || p.state === 'off' || p.state === 'board') continue;
+    const d = Math.hypot(p.x - player.x, p.z - player.z); if (d > 55 || d < .6) continue;
+    _sp.set(p.x, p.y + groundY(p.x, p.z) + 1.25, p.z).project(camera); if (_sp.z > 1) continue;
+    const sd = Math.hypot((_sp.x - cx) * camera.aspect, _sp.y - cy); if (sd < bd && los(player.x, player.z, p.x, p.z, 1.3)) { bd = sd; best = p; }
+  }
+  return best;
+}
 function computeAim() { // where the crosshair (or the locked target) is
   const t = player.lock;
-  if (t && t.state !== 'dead') { aimPoint.set(t.x, t.y + 1.25, t.z); return; }
-  camera.getWorldDirection(_rdir); _ro.copy(camera.position);
+  if (t && t.state !== 'dead') { aimPoint.set(t.x, t.y + 1.25, t.z); player.soft = null; return; }
+  player.soft = player.mode === 'foot' && (player.aiming || inp.mfire || inp.fire) ? nearPointer() : null;
+  if (player.soft) { const p = player.soft; aimPoint.set(p.x, p.y + groundY(p.x, p.z) + 1.25, p.z); return; }
+  if (freeMouse && inp.mIn) pointerRay(); else { camera.getWorldDirection(_rdir); _ro.copy(camera.position); }
   let d = 1; const max = 120;
   for (; d < max; d += 1) { const x = _ro.x + _rdir.x * d, y = _ro.y + _rdir.y * d, z = _ro.z + _rdir.z * d; if (y < 0 || solidAt(x, z, y)) break; }
   const hit = pedHitTest(_ro.x, _ro.y, _ro.z, _rdir.x, _rdir.y, _rdir.z, d);
@@ -1551,13 +1606,16 @@ const devLine = () => { const w = innerWidth, h = innerHeight; return `Detected 
 let running = false, paused = false;
 function openSettings() {
   if (paused && !$('#settings').hidden) return; paused = true; if (document.pointerLockElement) document.exitPointerLock(); $('#settings').hidden = false; $('#devline').textContent = devLine();
-  $('#s-tod').value = S.tod; $('#s-daylen').value = String(S.dayLen); $('#s-q').value = S.q; $('#s-sens').value = S.sens; $('#s-size').value = S.size; $('#s-op').value = S.op; $('#s-inv').checked = S.inv; $('#s-snd').checked = S.snd; $('#s-touch').checked = S.touch;
+  $('#s-mouse').value = S.mouse; $('#s-tod').value = S.tod; $('#s-daylen').value = String(S.dayLen); $('#s-q').value = S.q; $('#s-sens').value = S.sens; $('#s-size').value = S.size; $('#s-op').value = S.op; $('#s-inv').checked = S.inv; $('#s-snd').checked = S.snd; $('#s-touch').checked = S.touch;
 }
 $('#gear').addEventListener('click', openSettings);
 function resumeGame() { $('#settings').hidden = true; paused = false; if (!S.touch) lockPointer(); }
 $('#resume').addEventListener('click', resumeGame);
 $('#s-touch').addEventListener('change', e => { S.touch = e.target.checked; saveSettings(); layoutControls(); });
 $('#s-q').addEventListener('change', e => { S.q = e.target.value; saveSettings(); applyQuality(); });
+$('#s-mouse').addEventListener('change', e => { S.mouse = e.target.value; saveSettings(); decideMouse(); });
+$('#showhelp').addEventListener('click', () => { resumeGame(); showHelp(true); });
+$('#helpbtn').addEventListener('click', e => { e.stopPropagation(); showHelp($('#help').hidden); });
 $('#s-tod').addEventListener('change', e => { S.tod = e.target.value; saveSettings(); updateDayNight(0, true); });
 $('#s-daylen').addEventListener('change', e => { S.dayLen = +e.target.value; saveSettings(); });
 $('#s-sens').addEventListener('input', e => { S.sens = +e.target.value; saveSettings(); });
@@ -1576,16 +1634,26 @@ function onResize() {
 addEventListener('resize', onResize); addEventListener('orientationchange', () => setTimeout(onResize, 300));
 
 /* ================= main loop ================= */
-let propT = 0, now = 0, last = 0, shake = 0, areaT = 0, mapT = 0, targetT = 0, recycleT = 0, dtLast = 0;
+let promptT = 0, enterT = -99, propT = 0, now = 0, last = 0, shake = 0, areaT = 0, mapT = 0, targetT = 0, recycleT = 0, dtLast = 0;
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 function step(dt) {
   if (keys.size) {
-    const kx = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
-    const ky = (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0);
+    const kx = (keys.has('KeyD') ? 1 : 0) - (keys.has('KeyA') ? 1 : 0);
+    const ky = (keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0);
     if (kx || ky) { inp.jx = kx; inp.jy = ky; inp.kb = true; } else if (inp.kb) { inp.jx = inp.jy = 0; inp.kb = false; }
   } else if (inp.kb) { inp.jx = inp.jy = 0; inp.kb = false; }
   inp.kbrake = keys.has('Space') || keys.has('ShiftLeft') || keys.has('ShiftRight'); const sprint = keys.has('ShiftLeft') || keys.has('ShiftRight');
   const busy = player.busy > 0, down = player.down > 0 && !busy, held = busy || down;
+  { // camera turning without a captured mouse: arrow keys everywhere, screen edges in free-pointer mode (on foot)
+    const kl = (keys.has('ArrowLeft') ? 1 : 0) - (keys.has('ArrowRight') ? 1 : 0), ku = (keys.has('ArrowUp') ? 1 : 0) - (keys.has('ArrowDown') ? 1 : 0);
+    let ty = kl * 2.2, tp = -ku * 1.1;
+    if (freeMouse && inp.mIn && player.mode === 'foot' && !editing && inp.my > .2) { // (top strip excluded: minimap and buttons live there)
+      const ex = inp.mx * 2 - 1, ey = inp.my * 2 - 1, Z = .64, ZY = .72;
+      if (Math.abs(ex) > Z) ty -= Math.sign(ex) * ((Math.abs(ex) - Z) / (1 - Z)) ** 1.3 * 3.0;
+      if (Math.abs(ey) > ZY) tp += Math.sign(ey) * ((Math.abs(ey) - ZY) / (1 - ZY)) ** 1.3 * 1.2 * (S.inv ? -1 : 1);
+    }
+    if (ty || tp) { cam.yaw += ty * S.sens * dt; cam.pitch = clamp(cam.pitch + tp * S.sens * dt, -.35, 1.2); cam.lastDrag = now; }
+  }
   const firing = !held && (inp.fire || inp.mfire), braking = inp.brake || (player.mode === 'car' && inp.kbrake), jx = held ? 0 : inp.jx, jy = held ? 0 : inp.jy;
 
   if (player.mode === 'foot') {
@@ -1661,14 +1729,15 @@ function step(dt) {
   updateWanted(dt); updateHeli(dt);
   if (now - player.lastHurt > 6 && player.hp < 100 && !busy) { player.hp = Math.min(100, player.hp + 4 * dt); if ((now * 4 | 0) % 4 === 0) updateStats(); }
 
-  const wantAim = !held && (inp.aim || inp.maim);
+  if (player.mode !== 'foot') inp.sticky = false;
+  const wantAim = !held && (inp.aim || inp.maim || inp.sticky);
   if (wantAim) { if (!player.lock || player.lock.state === 'dead' || !player.lock.active || Math.hypot(player.lock.x - player.x, player.lock.z - player.z) > 55) { targetT -= dt; if (targetT <= 0) { targetT = .15; player.lock = findTarget(); } } }
   else { player.lock = null; targetT = 0; }
   player.cool -= dt; player.aimT -= dt;
   player.aiming = player.mode === 'foot' && !held && (wantAim || player.aimT > 0 || firing);
   computeAim();
   if (player.aiming) player.yaw += angDiff(player.yaw, Math.atan2(aimPoint.x - player.x, aimPoint.z - player.z)) * Math.min(1, dt * 18);
-  const t = player.lock;
+  const t = player.lock || player.soft;
   if (t && t.state !== 'dead') { reticle.visible = true; reticle.position.set(t.x, t.y + 1.3, t.z); } else reticle.visible = false;
   if (firing && player.cool <= 0 && !editing) fire();
   if (busy && $('#msg').className === 'ko') player.fall = Math.min(1, player.fall + dt * 3);
@@ -1709,6 +1778,15 @@ function updateCamera(dt) {
   headL.intensity = hon ? 55 * smooth(.3, .7, NIGHT) : 0;
   if (hc) { const fx = Math.sin(hc.yaw), fz = Math.cos(hc.yaw); headL.position.set(hc.x + fx * (hc.half - .2), (hc.y || 0) + .9, hc.z + fz * (hc.half - .2)); headL.target.position.set(hc.x + fx * 22, 0, hc.z + fz * 22); headL.target.updateMatrixWorld(); }
 }
+function updatePrompt() { // context help at the bottom of the screen
+  let t = '';
+  if (running && !paused && player.busy <= 0 && player.down <= 0) {
+    if (player.mode === 'car') { if (now - enterT < 6) t = `<kbd>F</kbd><span>${player.car.bike ? 'Get off' : 'Get out'}</span><kbd>Space</kbd><span>Handbrake</span>`; }
+    else { const c = nearestCar(); if (c) t = '<kbd>F</kbd><span>' + (c.bike ? 'Ride the bike' : c.police ? 'Steal the police car' : c.driver ? (c.type === 'bus' ? 'Hijack the bus' : 'Carjack it') : c.type === 'bus' ? 'Drive the bus' : c.type === 'cab' ? 'Take the cab' : 'Get in') + '</span>'; }
+    if (!t && WANTED.level > 0 && !WANTED.seen) t = '<span>Stay out of sight to lose the police</span>';
+  }
+  const el = $('#prompt'); if (el.innerHTML !== t) el.innerHTML = t; el.hidden = !t;
+}
 function frame(ts) {
   requestAnimationFrame(frame);
   const t = ts / 1000, dt = Math.min(.05, Math.max(0, t - last)); last = t;
@@ -1716,14 +1794,17 @@ function frame(ts) {
   dtLast = 0;
   if (!paused && !editing && $('#rotate').hidden) { now += dt; dtLast = dt; step(dt); updateDayNight(dt); }
   updateCamera(dt); camera.updateMatrixWorld(); animatePlayer(dtLast); renderPeds(dtLast); renderCars(); if ((propT = (propT + 1) % 15) === 0) cullProps();
-  $('#xhair').hidden = !(running && player.mode === 'foot' && !player.lock && player.busy <= 0); $('#xhair').classList.toggle('lock', !!player.lock);
+  const xh = $('#xhair'); xh.hidden = !(running && player.mode === 'foot' && !player.lock && player.busy <= 0 && !paused); xh.classList.toggle('lock', !!(player.lock || player.soft));
+  if (freeMouse) { xh.style.left = (inp.mIn ? inp.mx * 100 : 50) + '%'; xh.style.top = (inp.mIn ? inp.my * 100 : 50) + '%'; } else if (xh.style.left) { xh.style.left = xh.style.top = ''; }
+  if ((promptT = (promptT + 1) % 8) === 0) updatePrompt();
+  if (helpT > 0 && !paused) { helpT -= dt; if (helpT <= 0) $('#help').hidden = true; }
   if (player.mode === 'car') $('#speed').firstChild.nodeValue = Math.round(Math.abs(player.car.speed) * 2.237);
   if ((mapT = (mapT + 1) % 2) === 0) drawMinimap();
   renderer.render(scene, camera);
 }
 
 /* ================= boot ================= */
-$('#dev').textContent = devLine() + ' · keyboard and mouse';
+$('#dev').textContent = devLine() + (freeMouse || isIPad ? ' · keyboard and mouse (free pointer)' : ' · keyboard and mouse');
 let loaded = 0, cityPct = 0; const TOTAL = 17;
 const showLoad = () => { $('#play').textContent = `Loading London… ${Math.min(99, Math.round(loaded / TOTAL * 45 + cityPct * 55))}%`; };
 const tick = r => { loaded++; showLoad(); return r; };
@@ -1756,8 +1837,9 @@ async function boot() {
   requestAnimationFrame(frame);
 }
 boot().catch(e => { console.error(e); $('#play').textContent = 'Could not load: ' + (e && e.message || e); });
-window.LS = { player, peds, cars, cam, WANTED, TOD, S, killPed, cullProps, PROPMESH, Frustum: THREE.Frustum, addHeat, spawnPolice, deployCrew, camera, scene, inp, keys, renderer, groundY, updateDayNight, makeCar, get cityTris() { return cityTris; }, sim: n => { for (let i = 0; i < n; i++) { now += .05; dtLast = .05; step(.05); updateDayNight(.05); updateCamera(.05); camera.updateMatrixWorld(); animatePlayer(.05); renderPeds(.05); renderCars(); } }, enter: () => doEnter() };
-$('#play').addEventListener('click', () => { $('#title').hidden = true; running = true; initAudio(); if (AC && AC.resume) AC.resume(); onResize(); toastArea = ''; if (!S.touch) lockPointer(); });
+window.LS = { player, peds, cars, cam, WANTED, TOD, S, killPed, updatePrompt, nearPointer, cullProps, PROPMESH, Frustum: THREE.Frustum, addHeat, spawnPolice, deployCrew, camera, scene, inp, keys, renderer, groundY, updateDayNight, makeCar, get cityTris() { return cityTris; }, sim: n => { for (let i = 0; i < n; i++) { now += .05; dtLast = .05; step(.05); updateDayNight(.05); updateCamera(.05); camera.updateMatrixWorld(); animatePlayer(.05); renderPeds(.05); renderCars(); } }, enter: () => doEnter() };
+$('#play').addEventListener('click', () => { $('#title').hidden = true; running = true; initAudio(); if (AC && AC.resume) AC.resume(); onResize(); toastArea = ''; if (!S.touch) lockPointer(); showHelp(true, 30); });
+decideMouse();
 </script>
 
 </body></html>

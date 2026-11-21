@@ -21,10 +21,18 @@ A small open-world London game for the browser. It is built for an iPad (A16) wi
 
 ## Controls
 
+**On iPad with a mouse:** Safari on iPad can't capture the mouse (it has no Pointer Lock), so the game switches to a free pointer:
+- The crosshair follows your mouse, and shots snap to the person nearest it.
+- Push the pointer against the left or right edge of the screen to turn the camera, or use the arrow keys.
+- Most iPad keyboards have no Esc key, so P pauses.
+- Press / or tap the **?** button for the controls card. The Mouse setting can force either mode.
+- Tip: use Share → Add to Home Screen to play full screen without the Safari toolbar.
+
 | Key | Action |
 | --- | --- |
 | WASD | Move, or drive and ride |
-| Mouse | Look (click to lock the cursor) |
+| Mouse | Look and aim (on iPad: aim, and push to the screen edge to turn) |
+| Arrow keys | Turn and tilt the camera |
 | Left click | Shoot |
 | Right click | Lock on to the nearest person |
 | Shift | Sprint; handbrake in a vehicle |
@@ -34,7 +42,8 @@ A small open-world London game for the browser. It is built for an iPad (A16) wi
 | 1 2 3 or the mouse wheel | Switch weapon |
 | H | Horn |
 | T | Skip ahead one hour |
-| Esc | Pause and settings |
+| P or Esc | Pause and settings |
+| / | Show or hide the controls card |
 
 ## Performance (iPad)
 
