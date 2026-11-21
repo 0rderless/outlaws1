@@ -6,7 +6,7 @@ on the cavity floor once chiron_recess.py has carved it) and seated at the highe
 the ring's walls reach back into the floor so no gap shows where the floor falls away."""
 if 'LightRing' not in MATS:
     mat('LightRing', '#fff6e8', .2, 0, '#fff3df', 2.0)     # light-guide core (warm white)
-    mat('LightRingE', '#ffc27a', .2, 0, '#ffb860', 1.6)    # its warmer, golden edges
+    mat('LightRingE', '#ffd29a', .2, 0, '#ffc684', 1.6)    # its warmer edges
     mat('LampHsg', '#0b0c0e', .6)                          # black housing walls
     mat('LampBack', '#6e6a66', .5)                         # smoked interior seen through the glass
     mat('ProjLens', '#8a96a4', .05, 0, '#8a96a4', 1.0)     # projector lens: a dim grey-blue glint by day, lit at night

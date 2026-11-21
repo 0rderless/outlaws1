@@ -8,36 +8,33 @@ Runs after the body is subdivided and the wheel arches are cut, before the glass
    bonnet edge. The cavity faces take the 'Black' material.
 Contract with chiron_lamps.py: lamp centres |x| = .52 .605 .69 .775, z = .655; the slot encloses them with >= .015 margin."""
 # ------------------------------------------------------------------ 1. raise the fender fronts over the lamps
-RC_LIFT = pchip([(.26, 0), (.33, .004), (.39, .022), (.45, .06), (.51, .082), (.57, .072), (.63, .058), (.69, .048), (.75, .044),
-                 (.81, .046), (.87, .04), (.93, .016), (1.0, 0)])
+RC_LIFT = pchip([(.27, 0), (.33, .01), (.36, .03), (.39, .058), (.42, .08), (.45, .084), (.50, .08), (.55, .072), (.60, .056), (.65, .044),
+                 (.70, .036), (.76, .033), (.82, .036), (.88, .033), (.93, .015), (1.0, 0)])
 for v in me.vertices:
     x, y, z = v.co
     a = RC_LIFT(abs(x))
-    if a <= 0 or y > -1.3 or z < .55: continue
-    v.co.z = z + a * (1 - sm(-2.12, -1.38, y)) * sm(.55, .70, z)
+    if a <= 0 or y > -1.3 or z < .48: continue
+    v.co.z = z + a * (1 - sm(-2.12, -1.38, y)) * sm(.48, .62, z)
 me.update()
 # ------------------------------------------------------------------ 2. the slot outline (front view |x|, z) as columns
 RC_TOP, RC_BOT = .707, .603                                # ceiling / lip heights along the lamps
-RC_XI, RC_ZI = .385, .628                                  # inner tip, under the bonnet edge
+RC_XI, RC_ZI = .385, .638                                  # inner tip, under the bonnet edge
 RC_XO = .855                                               # outer extreme (wraps round the corner)
 RC_D = .052                                                # floor depth behind the face (at mid height)
+RC_ZT = pchip([(RC_XI, RC_ZI), (.41, .658), (.44, .681), (.47, .699), (.50, RC_TOP)])   # inner channel: ceiling sweeps down
+RC_ZB = pchip([(RC_XI, RC_ZI), (.41, .622), (.44, .609), (.465, RC_BOT)])              # ... and the lip rises to the tip
 def rc_columns():
     cols = []
-    # inner channel: tip -> first lamp; the ceiling curves down to the tip, the lip rises to it
-    xa = .488
+    xa = .50                                                 # inner channel: tip -> first lamp
     for k in range(14):
-        u = k / 14; x = lerp(RC_XI, xa, u)
-        zt = lerp(RC_ZI, RC_TOP, 1 - (1 - u) ** 1.7)
-        zb = lerp(RC_ZI, RC_BOT, 1 - (1 - u) ** 2.6)
-        cols.append((x, zt, zb, u))
-    # straight run under the lamps (lip dips very slightly in the middle)
-    xb = RC_XO - .05
-    for k in range(13):
-        u = k / 13; x = lerp(xa, xb, u)
+        u = k / 14; x = lerp(RC_XI, xa, 1 - (1 - u) ** 1.4)
+        cols.append((x, RC_ZT(x), RC_ZB(x), (x - RC_XI) / (xa - RC_XI)))
+    xb = RC_XO - .05                                         # straight run under the lamps (lip dips very slightly in the middle)
+    for k in range(12):
+        u = k / 12; x = lerp(xa, xb, u)
         cols.append((x, RC_TOP + .002 * u, RC_BOT - .003 * math.sin(math.pi * u), 1.0))
-    # rounded outer end: elliptical cap, centre (xb, zm)
     zm = (RC_TOP + .002 + RC_BOT) / 2; hh = (RC_TOP + .002 - RC_BOT) / 2
-    for k in range(13):
+    for k in range(13):                                      # rounded outer end: elliptical cap, centre (xb, zm)
         th = math.pi / 2 * k / 12
         x = xb + (RC_XO - xb) * math.sin(th); h = hh * math.cos(th) ** .85
         cols.append((x, zm + h, zm - h, 1.0))
@@ -49,12 +46,17 @@ def rc_hit(x, z):
     return loc, nrm
 def rc_sections():
     """cross-sections (at +x) of the cutter, one per column: [outside@ceiling, ceiling back, floor bottom, outside@lip]"""
-    cols = rc_columns(); secs = []
-    for i, (x, zt, zb, w) in enumerate(cols):
+    cols = rc_columns(); dirs = []
+    for x, zt, zb, w in cols:                                # into the body: horizontal, between the face normal and +y
+        zmid = (zt + zb) / 2; t = rc_hit(x + .02, zmid)[0] - rc_hit(x - .02, zmid)[0]
+        dirs.append(Vector((-t.y, t.x, 0)).normalized().lerp(Vector((0, 1, 0)), .45).normalized())
+    for _ in range(3): dirs = [(dirs[max(0, i - 1)] + dirs[i] * 2 + dirs[min(len(dirs) - 1, i + 1)]).normalized() for i in range(len(dirs))]
+    secs = []
+    for i, ((x, zt, zb, w), d) in enumerate(zip(cols, dirs)):
         zmid = (zt + zb) / 2; hgt = zt - zb
-        pm, nm = rc_hit(x, zmid); pt, _ = rc_hit(x, zt); pb, _ = rc_hit(x, zb)
-        d = Vector((-nm.x, -nm.y, 0)).normalized()          # horizontal, into the body
-        d = d.lerp(Vector((0, 1, 0)), .35).normalized()      # a little more straight back than the surface normal
+        pm = rc_hit(x, zmid)[0]; pt = rc_hit(x, zt)[0]; pb = rc_hit(x, zb)[0]
+        if abs(pt.y - pm.y) > .04: print('recess: ceiling misses the face at', round(x, 3)); pt = pm.copy()
+        if abs(pb.y - pm.y) > .04: print('recess: lip misses the face at', round(x, 3)); pb = pm.copy()
         D = RC_D * (.45 + .55 * w)                           # the channel gets shallower toward the tip
         if i == 0 or i == len(cols) - 1:                     # the tip / the outer end close on an edge
             secs.append([pm - d * .05, pm + d * D * .5]); continue
