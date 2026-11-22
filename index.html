@@ -246,7 +246,7 @@ const LAYOUTS = {
   pad:   { joy: [.13, .76, 178], fire: [.895, .75, 118], jump: [.79, .89, 82], enter: [.905, .54, 84], weapon: [.79, .63, 76], brake: [.69, .89, 84] },
   desk:  { joy: [.12, .74, 150], fire: [.89, .72, 100], jump: [.79, .87, 70], enter: [.9, .5, 72], weapon: [.79, .59, 64], brake: [.69, .87, 72] }
 };
-let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24, mouse: 'auto', spType: 'hyper', spCol: '#0b0b0c', radioVol: .8, radioId: 'b0' };
+let S = { q: 'med', sens: 1, size: 1, op: .85, inv: false, snd: true, touch: false, lay: {}, tod: 'cycle', dayLen: 24, mouse: 'auto', spType: 'sports', spCol: '#0b0b0c', radioVol: .8, radioId: 'b0' };
 try { const s = JSON.parse(localStorage.getItem('ls-settings3') || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
 const saveSettings = () => { try { localStorage.setItem('ls-settings3', JSON.stringify(S)); } catch (e) {} };
 
@@ -909,7 +909,6 @@ const CARSPEC = {
   police: { L: 4.56, W: 1.82, wz: [.18, .82], r: .33, H: 1.5, topV: 46, acc: 22, maxV: 11.5, mass: 1.2 },
   bus: { L: 9.1, W: 2.44, wzAbs: [3.55, -1.94], r: .5, H: 4.38, topV: 21, acc: 6.5, maxV: 8.5, mass: 4 },
   bike: { L: 2.1, W: .72, r: .31, H: 1.25, topV: 52, acc: 21, maxV: 13, mass: .45 },
-  hyper: { L: 4.54, W: 2.04, wz: [.22, .817], r: .365, H: 1.21, topV: 76, acc: 31, maxV: 14, mass: 1.1 },
   tank: { L: 7.8, W: 3.84, r: .4, H: 2.9, topV: 17, acc: 7, maxV: 8, mass: 14 },
   heli: { L: 9.4, W: 2.4, r: .3, H: 3.4, topV: 38, acc: 12, maxV: 10, mass: 2 }
 };
@@ -984,13 +983,13 @@ function prepBike(gltf) { // Blender sport bike: body + two wheels with their or
   T.wf = mergeGeometries(W.WheelF.g, false); T.wr = mergeGeometries(W.WheelR.g, false); T.zf = W.WheelF.pos.z; T.zr = W.WheelR.pos.z; T.wy = W.WheelF.pos.y;
   CARTPL.bike = T;
 }
-let wheelMesh = null, busWheelMesh = null, hyperWheelMesh = null; const MAXCARS = 48;
+let wheelMesh = null, busWheelMesh = null; const MAXCARS = 48;
 function wheelInstances(gltf, count) { // one instanced draw per wheel material for every wheel in town
   const geos = [], mats = []; gltf.scene.updateMatrixWorld(true);
   gltf.scene.traverse(o => { if (o.isMesh) { let g = o.geometry.clone().applyMatrix4(o.matrixWorld); if (g.index) g = g.toNonIndexed(); for (const k of Object.keys(g.attributes)) if (!['position', 'normal'].includes(k)) g.deleteAttribute(k); geos.push(g); mats.push(o.material); } });
   const m = new THREE.InstancedMesh(mergeGeometries(geos, true), mats, count); m.frustumCulled = false; m.castShadow = true; scene.add(m); return m;
 }
-function prepWheel(gltf, busG, hyperG) { wheelMesh = wheelInstances(gltf, MAXCARS * 4); busWheelMesh = wheelInstances(busG, 8 * 4); hyperWheelMesh = wheelInstances(hyperG, 6 * 4); }
+function prepWheel(gltf, busG) { wheelMesh = wheelInstances(gltf, MAXCARS * 4); busWheelMesh = wheelInstances(busG, 8 * 4); }
 const CAR_COLS = ['#c9c9c9', '#2d4f8a', '#8a1c1c', '#f0f0f0', '#3a3a3a', '#1e5a3c', '#b8860b', '#5b6770', '#7a2e5c', '#d9d2c3', '#0f0f10', '#4a6fa5', '#9a9ea3', '#20262c'];
 const cars = [];
 const NCARS = S.q === 'low' ? 14 : 22;
@@ -999,7 +998,7 @@ function paintMaterial(color) {
     : new THREE.MeshStandardMaterial({ color: C(color), metalness: .5, roughness: .24, envMapIntensity: 1.15 });
 }
 function makeCar(type, x, z, yaw, ai, color) {
-  const sp = CARSPEC[type], T = CARTPL[type], paint = color ? color : type === 'tank' ? '#5f6146' : type === 'heli' ? '#1b2a5a' : type === 'hyper' ? '#15171c' : type === 'police' ? '#f2f3f5' : type === 'cab' ? '#101112' : type === 'bus' ? '#c8231b' : type === 'bike' ? pick(['#c8102e', '#f2c200', '#1d4fa3', '#0f0f10', '#e8e8e8', '#1e7a3c']) : pick(CAR_COLS);
+  const sp = CARSPEC[type], T = CARTPL[type], paint = color ? color : type === 'tank' ? '#5f6146' : type === 'heli' ? '#1b2a5a' : type === 'police' ? '#f2f3f5' : type === 'cab' ? '#101112' : type === 'bus' ? '#c8231b' : type === 'bike' ? pick(['#c8102e', '#f2c200', '#1d4fa3', '#0f0f10', '#e8e8e8', '#1e7a3c']) : pick(CAR_COLS);
   const mesh = new THREE.Group(); scene.add(mesh);
   if (type === 'tank' || type === 'heli') {
     const RG = RIGS[type], pm0 = paintMaterial(paint);
@@ -1033,7 +1032,7 @@ function makeCar(type, x, z, yaw, ai, color) {
 }
 const mW = new M4(), mC = new M4(), mR = new M4(), mT = new M4();
 function renderCars() {
-  let n = 0, nb = 0, nh = 0;
+  let n = 0, nb = 0;
   const CARD = isIPad && S.q !== 'high' ? 200 : 240;
   for (const c of cars) {
     const vis = c === player.car || Math.hypot(c.x - camera.position.x, c.z - camera.position.z) < CARD; c.mesh.visible = vis; if (!vis) continue;
@@ -1043,17 +1042,16 @@ function renderCars() {
     if (c.tank) { c.turret.rotation.y = c.tYaw; c.gunG.rotation.x = -c.tPitch; continue; }
     if (c.heli) { c.body.rotation.set(c.pitch, 0, c.roll); c.rotor.rotation.y += dtLast * 42 * c.spinR; c.tailR.rotation.x += dtLast * 60 * c.spinR; continue; }
     mC.makeRotationY(c.yaw).setPosition(c.x, c.y || 0, c.z);
-    const bus = c.type === 'bus', hyp = c.type === 'hyper';
-    for (let k = 0; k < c.wheels.length && n < MAXCARS * 4 && nb < 32 && nh < 24; k++) {
+    const bus = c.type === 'bus';
+    for (let k = 0; k < c.wheels.length && n < MAXCARS * 4 && nb < 32; k++) {
       const [wx, wz] = c.wheels[k], front = wz > 0;
       const lft = wx < 0; // left wheels are turned round so the spokes face outward on both sides
       mR.makeRotationY((front ? (c === player.car ? -inp.jx * .34 : clamp(c.steer || 0, -.34, .34)) : 0) + (lft ? Math.PI : 0)); mT.makeRotationX(lft ? -c.spin : c.spin); mR.multiply(mT); mT.makeScale(r, r, r); mR.multiply(mT); mR.setPosition(wx, r, wz);
-      mW.multiplyMatrices(mC, mR); if (bus) busWheelMesh.setMatrixAt(nb++, mW); else if (hyp) hyperWheelMesh.setMatrixAt(nh++, mW); else wheelMesh.setMatrixAt(n++, mW);
+      mW.multiplyMatrices(mC, mR); if (bus) busWheelMesh.setMatrixAt(nb++, mW); else wheelMesh.setMatrixAt(n++, mW);
     }
   }
   wheelMesh.count = n; wheelMesh.instanceMatrix.needsUpdate = true; // only the wheels in use are drawn
   busWheelMesh.count = nb; busWheelMesh.instanceMatrix.needsUpdate = true;
-  hyperWheelMesh.count = nh; hyperWheelMesh.instanceMatrix.needsUpdate = true;
 }
 const ZERO = new M4().makeScale(0, 0, 0);
 function crashBike(c, imp) { // thrown over the bars: the rider tumbles, the bike falls over
@@ -2069,12 +2067,13 @@ function frame(ts) {
 }
 
 /* ================= vehicle spawner ================= */
-const SPAWNABLE = [['hyper', 'Chiron hypercar', 170], ['sports', 'Sports car', 112], ['saloon', 'Saloon', 81], ['hatch', 'Hatchback', 76], ['suv', 'SUV', 76], ['cab', 'Black cab', 72],
+const SPAWNABLE = [['sports', 'Sports car', 112], ['saloon', 'Saloon', 81], ['hatch', 'Hatchback', 76], ['suv', 'SUV', 76], ['cab', 'Black cab', 72],
   ['police', 'Police car', 103], ['bus', 'Routemaster bus', 47], ['bike', 'Motorbike', 116], ['heli', 'Helicopter', 85], ['tank', 'Tank', 38]];
 const PAINTS = ['#0b0b0c', '#f4f4f2', '#b9bcc0', '#5a5f66', '#c8102e', '#7a1020', '#ff6a00', '#f2c200', '#1f8a3c', '#0d4d2f', '#1d4fa3', '#0a1f4d', '#3fb7e6', '#6a2c91', '#ff4fa3', '#c9a227'];
 const spawned = [];
 function openSpawner() {
   if (!running) return; paused = true; if (document.pointerLockElement) document.exitPointerLock();
+  if (!SPAWNABLE.some(([t]) => t === S.spType)) S.spType = 'sports';   // e.g. a saved choice of a vehicle that no longer exists
   const L = $('#sp-list'); L.innerHTML = SPAWNABLE.map(([t, n, mph]) => `<button class="sp-card${S.spType === t ? ' on' : ''}" data-t="${t}"><b>${n}</b><small>${mph} mph</small></button>`).join('');
   const P = $('#sp-cols'); P.innerHTML = PAINTS.map(c => `<button class="sp-col${S.spCol === c ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('');
   $('#sp-custom').value = S.spCol; $('#spawner').hidden = false;
@@ -2199,7 +2198,7 @@ function phonk(on) {
 
 /* ================= boot ================= */
 $('#dev').textContent = devLine() + (freeMouse || isIPad ? ' · keyboard and mouse (free pointer)' : ' · keyboard and mouse');
-let loaded = 0, cityPct = 0; const TOTAL = 22;
+let loaded = 0, cityPct = 0; const TOTAL = 20;
 const showLoad = () => { $('#play').textContent = `Loading London… ${Math.min(99, Math.round(loaded / TOTAL * 45 + cityPct * 55))}%`; };
 const tick = r => { loaded++; showLoad(); return r; };
 async function boot() {
@@ -2207,13 +2206,13 @@ async function boot() {
   const J = u => fetch(u).then(r => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); }).then(tick);
   const [layout, layerInfo] = await Promise.all([J('assets/city/layout.json'), J('assets/city/layers.json')]);
   initLayout(layout);
-  const carTypes = ['saloon', 'hatch', 'suv', 'sports', 'cab', 'police', 'bus', 'hyper'];
+  const carTypes = ['saloon', 'hatch', 'suv', 'sports', 'cab', 'police', 'bus'];
   const specs = await J('assets/cars/specs.json'); for (const t in specs) Object.assign(CARSPEC[t] = CARSPEC[t] || {}, specs[t]);
-  const [tex, cityG, propG, eyeG, anims, hero, man, woman, cop, guns, wheelG, bikeG, busWheelG, hyperWheelG, tankG, heliG, ...carG] = await Promise.all([
+  const [tex, cityG, propG, eyeG, anims, hero, man, woman, cop, guns, wheelG, bikeG, busWheelG, tankG, heliG, ...carG] = await Promise.all([
     loadLayerTexture('assets/city/layers.jpg', layerInfo).then(tick),
     gl.loadAsync('assets/city/city.min.glb', e => { if (e.total) { cityPct = e.loaded / e.total; showLoad(); } }).then(tick),
     L('assets/city/props.min.glb'), L('assets/city/eye.min.glb'),
-    L('assets/anims.glb'), L('assets/hero.glb'), L('assets/man.glb'), L('assets/woman.glb'), L('assets/cop.glb'), L('assets/guns.glb'), L('assets/cars/wheel.glb'), L('assets/cars/bike.glb'), L('assets/cars/buswheel.glb'), L('assets/cars/wheel_hyper.glb'), L('assets/cars/tank.glb'), L('assets/cars/heli.glb'),
+    L('assets/anims.glb'), L('assets/hero.glb'), L('assets/man.glb'), L('assets/woman.glb'), L('assets/cop.glb'), L('assets/guns.glb'), L('assets/cars/wheel.glb'), L('assets/cars/bike.glb'), L('assets/cars/buswheel.glb'), L('assets/cars/tank.glb'), L('assets/cars/heli.glb'),
     ...carTypes.map(t => L('assets/cars/' + t + '.glb'))
   ]);
   $('#play').textContent = 'Building London…'; await new Promise(r => setTimeout(r, 30));
@@ -2223,7 +2222,7 @@ async function boot() {
   const clips = anims.animations, animRoot = anims.scene;
   prepTemplate('hero', hero, animRoot, clips); prepTemplate('man', man, animRoot, clips); prepTemplate('woman', woman, animRoot, clips); prepTemplate('cop', cop, animRoot, clips);
   TPL.hero.root.traverse(o => { if (o.isMesh) o.material.envMapIntensity = .55; });
-  prepWheel(wheelG, busWheelG, hyperWheelG); carTypes.forEach((t, i) => prepCar(t, carG[i])); prepBike(bikeG); prepRig('tank', tankG, ['Hull', 'Turret', 'Gun']); prepRig('heli', heliG, ['Body', 'Rotor', 'TailRotor']);
+  prepWheel(wheelG, busWheelG); carTypes.forEach((t, i) => prepCar(t, carG[i])); prepBike(bikeG); prepRig('tank', tankG, ['Hull', 'Turret', 'Gun']); prepRig('heli', heliG, ['Body', 'Rotor', 'TailRotor']);
   makeHero(); initPeds(); initTraffic();
   updateDayNight(0, true); radioLoad();
   applyQuality(); refreshButtons(); updateStats(); updateStars(); layoutControls();
